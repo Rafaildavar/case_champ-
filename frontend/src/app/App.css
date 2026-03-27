@@ -337,9 +337,12 @@ body {
 }
 
 .profile-avatar {
-  flex-shrink: 0;
+  flex: 0 0 auto;
   width: 54px;
   height: 54px;
+  min-width: 54px;
+  min-height: 54px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -1065,6 +1068,14 @@ body {
 
   .profile-stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-avatar {
+    width: clamp(44px, 14vw, 54px);
+    height: clamp(44px, 14vw, 54px);
+    min-width: 44px;
+    min-height: 44px;
+    font-size: clamp(18px, 5vw, 22px);
   }
 
   .profile-progress-track {
