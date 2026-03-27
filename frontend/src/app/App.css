@@ -528,6 +528,144 @@
   font-size: 12px;
   line-height: 1;
   padding: 6px 10px;
+  cursor: pointer;
+}
+
+.topic-task-type-chip-done {
+  border-color: rgba(130, 230, 168, 0.45);
+  background: rgba(92, 184, 128, 0.24);
+  color: #c9f4da;
+}
+
+.test-task-screen {
+  margin-top: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 171, 238, 0.25);
+  background: linear-gradient(165deg, rgba(23, 21, 33, 0.98) 0%, rgba(17, 16, 25, 0.98) 100%);
+  padding: 14px;
+}
+
+.test-task-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.test-task-kicker {
+  color: #ddd6f7;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.test-task-close {
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ece6ff;
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.test-task-body {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.test-task-video {
+  border-radius: 14px;
+  border: 1px dashed rgba(188, 174, 249, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  color: #c8bdf1;
+}
+
+.test-task-text,
+.test-task-question {
+  color: #d3caef;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.test-task-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-task-option {
+  border-radius: 12px;
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ece6ff;
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.test-task-option-active {
+  border-color: rgba(193, 160, 255, 0.7);
+  background: rgba(168, 131, 255, 0.2);
+}
+
+.test-task-hint {
+  border-radius: 12px;
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d9cff8;
+  font-size: 13px;
+  padding: 10px;
+}
+
+.test-task-textarea {
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+  border-radius: 12px;
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f2edff;
+  font-size: 14px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.test-task-calc-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.test-task-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #d3caef;
+  font-size: 13px;
+}
+
+.test-task-input {
+  border-radius: 10px;
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f2edff;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.test-task-result {
+  border-radius: 12px;
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e5dbff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px;
 }
 
 @media (max-width: 420px) {

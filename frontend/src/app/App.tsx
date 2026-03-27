@@ -112,6 +112,17 @@ export default function App() {
   const [selectedMarathonId, setSelectedMarathonId] = useState<string | null>(null);
   const [registeredMarathonIds, setRegisteredMarathonIds] = useState<string[]>([]);
   const [progressByMarathon, setProgressByMarathon] = useState<Record<string, MarathonProgress>>({});
+  const [activeTestTask, setActiveTestTask] = useState<{ topicId: string; taskType: TaskType } | null>(null);
+  const [completedTestTasksByTopic, setCompletedTestTasksByTopic] = useState<Record<string, TaskType[]>>({});
+  const [quizAnswer, setQuizAnswer] = useState<string | null>(null);
+  const [quizChecked, setQuizChecked] = useState(false);
+  const [practiceDraft, setPracticeDraft] = useState("");
+  const [practiceSubmitted, setPracticeSubmitted] = useState(false);
+  const [matchingChoice, setMatchingChoice] = useState<string | null>(null);
+  const [matchingChecked, setMatchingChecked] = useState(false);
+  const [calcUnits, setCalcUnits] = useState("10");
+  const [calcBuyPrice, setCalcBuyPrice] = useState("110");
+  const [calcCurrentPrice, setCalcCurrentPrice] = useState("112");
 
   const selectedMarathon = MARATHONS.find((m) => m.id === selectedMarathonId) ?? null;
 
@@ -132,6 +143,9 @@ export default function App() {
     [registeredMarathons]
   );
 
+  const activeTestTopic =
+    selectedMarathon && activeTestTask ? selectedMarathon.topics.find((topic) => topic.id === activeTestTask.topicId) ?? null : null;
+
   function getProgress(marathonId: string): MarathonProgress {
     return (
       progressByMarathon[marathonId] ?? {
@@ -142,6 +156,35 @@ export default function App() {
         windowMissedTopicIds: []
       }
     );
+  }
+
+  function resetTaskInteractionState() {
+    setQuizAnswer(null);
+    setQuizChecked(false);
+    setPracticeDraft("");
+    setPracticeSubmitted(false);
+    setMatchingChoice(null);
+    setMatchingChecked(false);
+    setCalcUnits("10");
+    setCalcBuyPrice("110");
+    setCalcCurrentPrice("112");
+  }
+
+  function openTestTask(topicId: string, taskType: TaskType) {
+    setActiveTestTask({ topicId, taskType });
+    resetTaskInteractionState();
+  }
+
+  function markTestTaskCompleted(topicId: string, taskType: TaskType) {
+    setCompletedTestTasksByTopic((prev) => {
+      const current = prev[topicId] ?? [];
+      if (current.includes(taskType)) return prev;
+      return { ...prev, [topicId]: [...current, taskType] };
+    });
+  }
+
+  function isTestTaskCompleted(topicId: string, taskType: TaskType): boolean {
+    return (completedTestTasksByTopic[topicId] ?? []).includes(taskType);
   }
 
   function registerToMarathon(marathonId: string) {
@@ -243,6 +286,10 @@ export default function App() {
   useEffect(() => {
     void initVk();
   }, []);
+
+  useEffect(() => {
+    setActiveTestTask(null);
+  }, [activeTab, selectedMarathonId]);
 
   if (!vkReady) {
     return (
@@ -388,6 +435,15 @@ export default function App() {
                   const state = getTopicState(selectedMarathon, index, progress);
                   const testMode = isTestMarathon(selectedMarathon);
                   const taskTypes = topic.taskTypes ?? [];
+                  const allTaskTypesCompleted = taskTypes.every((taskType) => isTestTaskCompleted(topic.id, taskType));
+                  const canCompleteTopic = testMode ? allTaskTypesCompleted : !state.isLocked;
+                  const completeTopicButtonLabel = testMode
+                    ? state.isCompleted
+                      ? "Тема пройдена"
+                      : allTaskTypesCompleted
+                        ? "Завершить тему"
+                        : "Сначала пройди задания"
+                    : "Пройти тему";
 
                   return (
                     <div key={topic.id} className="marathon-topic-item">
@@ -407,9 +463,14 @@ export default function App() {
                               <div className="topic-task-types-title">Задания в теме:</div>
                               <div className="topic-task-types-list">
                                 {taskTypes.map((taskType) => (
-                                  <span key={`${topic.id}-${taskType}`} className="topic-task-type-chip">
+                                  <button
+                                    key={`${topic.id}-${taskType}`}
+                                    type="button"
+                                    className={`topic-task-type-chip ${isTestTaskCompleted(topic.id, taskType) ? "topic-task-type-chip-done" : ""}`}
+                                    onClick={() => openTestTask(topic.id, taskType)}
+                                  >
                                     {getTaskTypeLabel(taskType)}
-                                  </span>
+                                  </button>
                                 ))}
                               </div>
                             </div>
@@ -423,9 +484,19 @@ export default function App() {
                       )}
 
                       <div className="topic-actions">
-                        <Button className="topic-primary-btn" disabled={state.isLocked || state.isCompleted} onClick={() => completeTopic(topic.id)}>
-                          Пройти тему
+                        <Button className="topic-primary-btn" disabled={!canCompleteTopic || state.isCompleted} onClick={() => completeTopic(topic.id)}>
+                          {completeTopicButtonLabel}
                         </Button>
+                        {testMode ? (
+                          <Button
+                            mode="secondary"
+                            className="topic-secondary-btn"
+                            disabled={taskTypes.length === 0}
+                            onClick={() => openTestTask(topic.id, taskTypes[0] ?? "video")}
+                          >
+                            Открыть задания
+                          </Button>
+                        ) : null}
                         {!testMode ? (
                           <Button
                             mode="secondary"
@@ -462,6 +533,178 @@ export default function App() {
                   );
                 })}
               </div>
+
+              {isTestMarathon(selectedMarathon) && activeTestTask && activeTestTopic ? (
+                <div className="test-task-screen">
+                  <div className="test-task-head">
+                    <div className="test-task-kicker">
+                      {activeTestTopic.title} · {getTaskTypeLabel(activeTestTask.taskType)}
+                    </div>
+                    <button type="button" className="test-task-close" onClick={() => setActiveTestTask(null)}>
+                      Закрыть
+                    </button>
+                  </div>
+
+                  {activeTestTask.taskType === "video" ? (
+                    <div className="test-task-body">
+                      <div className="test-task-video">Видео-превью</div>
+                      <p className="test-task-text">
+                        Посмотри вводный ролик по теме и отметь выполнение. Для теста считаем, что видео просмотрено.
+                      </p>
+                      <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "video")}>
+                        Отметить «Видео просмотрено»
+                      </Button>
+                    </div>
+                  ) : null}
+
+                  {activeTestTask.taskType === "test" ? (
+                    <div className="test-task-body">
+                      <div className="test-task-question">Что чаще всего делает новичок перед стартом инвестиций?</div>
+                      <div className="test-task-options">
+                        {[
+                          "Сразу покупает актив без плана",
+                          "Формирует стратегию и горизонт",
+                          "Инвестирует все средства в один инструмент"
+                        ].map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`test-task-option ${quizAnswer === option ? "test-task-option-active" : ""}`}
+                            onClick={() => {
+                              setQuizAnswer(option);
+                              setQuizChecked(false);
+                            }}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="topic-actions">
+                        <Button
+                          mode="secondary"
+                          className="topic-secondary-btn"
+                          disabled={!quizAnswer}
+                          onClick={() => setQuizChecked(true)}
+                        >
+                          Проверить ответ
+                        </Button>
+                        {quizChecked && quizAnswer === "Формирует стратегию и горизонт" ? (
+                          <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "test")}>
+                            Завершить тест
+                          </Button>
+                        ) : null}
+                      </div>
+                      {quizChecked ? (
+                        <div className="test-task-hint">
+                          {quizAnswer === "Формирует стратегию и горизонт"
+                            ? "Верно! Такой подход снижает риск и помогает держать дисциплину."
+                            : "Почти. Попробуй вариант про стратегию и горизонт."}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {activeTestTask.taskType === "practice" ? (
+                    <div className="test-task-body">
+                      <div className="test-task-question">Практика: опиши свою мини-стратегию на 2-3 предложения.</div>
+                      <textarea
+                        className="test-task-textarea"
+                        value={practiceDraft}
+                        onChange={(event) => {
+                          setPracticeDraft(event.target.value);
+                          setPracticeSubmitted(false);
+                        }}
+                        placeholder="Например: инвестирую регулярно, диверсифицирую, пересматриваю портфель раз в квартал."
+                      />
+                      <div className="topic-actions">
+                        <Button
+                          mode="secondary"
+                          className="topic-secondary-btn"
+                          disabled={practiceDraft.trim().length < 10}
+                          onClick={() => setPracticeSubmitted(true)}
+                        >
+                          Отправить практику
+                        </Button>
+                        {practiceSubmitted ? (
+                          <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "practice")}>
+                            Завершить практику
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {activeTestTask.taskType === "matching" ? (
+                    <div className="test-task-body">
+                      <div className="test-task-question">Сопоставление: что лучше всего связано с дисциплиной инвестора?</div>
+                      <div className="test-task-options">
+                        {["Панические покупки", "Регулярные взносы по плану", "Полный отказ от анализа"].map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`test-task-option ${matchingChoice === option ? "test-task-option-active" : ""}`}
+                            onClick={() => {
+                              setMatchingChoice(option);
+                              setMatchingChecked(false);
+                            }}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="topic-actions">
+                        <Button
+                          mode="secondary"
+                          className="topic-secondary-btn"
+                          disabled={!matchingChoice}
+                          onClick={() => setMatchingChecked(true)}
+                        >
+                          Проверить сопоставление
+                        </Button>
+                        {matchingChecked && matchingChoice === "Регулярные взносы по плану" ? (
+                          <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "matching")}>
+                            Завершить сопоставление
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {activeTestTask.taskType === "calculator" ? (
+                    <div className="test-task-body">
+                      <div className="test-task-question">Калькулятор: рассчитай финансовый результат позиции.</div>
+                      <div className="test-task-calc-grid">
+                        <label className="test-task-field">
+                          Количество
+                          <input value={calcUnits} onChange={(event) => setCalcUnits(event.target.value)} className="test-task-input" />
+                        </label>
+                        <label className="test-task-field">
+                          Цена входа
+                          <input value={calcBuyPrice} onChange={(event) => setCalcBuyPrice(event.target.value)} className="test-task-input" />
+                        </label>
+                        <label className="test-task-field">
+                          Текущая цена
+                          <input value={calcCurrentPrice} onChange={(event) => setCalcCurrentPrice(event.target.value)} className="test-task-input" />
+                        </label>
+                      </div>
+                      <div className="test-task-result">
+                        Результат:{" "}
+                        {(() => {
+                          const units = Number(calcUnits) || 0;
+                          const buy = Number(calcBuyPrice) || 0;
+                          const current = Number(calcCurrentPrice) || 0;
+                          const pnl = (current - buy) * units;
+                          const sign = pnl >= 0 ? "+" : "";
+                          return `${sign}${pnl.toFixed(2)} руб.`;
+                        })()}
+                      </div>
+                      <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "calculator")}>
+                        Завершить калькулятор
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className="topic-actions">
                 <Button mode="secondary" className="topic-secondary-btn" onClick={() => setSelectedMarathonId(null)}>
