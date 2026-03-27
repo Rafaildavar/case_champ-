@@ -1,112 +1,176 @@
 .story-panel {
   min-height: 100svh;
-  background:
-    radial-gradient(1000px 420px at -10% -10%, rgba(171, 214, 255, 0.78), transparent 65%),
-    radial-gradient(900px 500px at 110% 0%, rgba(203, 228, 255, 0.9), transparent 70%),
-    linear-gradient(180deg, #eef6ff 0%, #e3f0ff 45%, #d7e9ff 100%);
+  background: #f5f6f7;
 }
 
 .story-topbar {
-  background: rgba(11, 40, 77, 0.95);
-  color: #f3f8ff;
+  background: #ffffff;
+  color: #1f1f1f;
 }
 
 .story-group-title {
-  color: #173d69;
+  color: #2c2c2c;
 }
 
-.story-card {
-  border: 1px solid rgba(45, 111, 176, 0.2);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 40px rgba(18, 56, 103, 0.13);
-  backdrop-filter: blur(10px);
+.duo-card {
+  border: 1px solid #e6e6e6;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
-.story-chip-row {
-  display: flex;
-  gap: 8px;
+.duo-head {
+  display: grid;
+  grid-template-columns: 28px 1fr 40px;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
-.story-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.duo-close {
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  color: #b1b1b1;
+  line-height: 1;
+}
+
+.duo-progress-track {
+  height: 10px;
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #174f87;
-  background: rgba(211, 233, 255, 0.95);
+  background: #e8e8e8;
+  overflow: hidden;
 }
 
-.story-chip-ghost {
-  color: #205f26;
-  background: rgba(214, 248, 215, 0.92);
+.duo-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #70d419, #57bf00);
 }
 
-.story-title {
-  margin: 0 0 10px 0;
-  color: #11355b;
+.duo-xp {
+  justify-self: end;
+  color: #d77ad9;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.duo-title {
+  margin: 0 0 8px 0;
   font-size: 24px;
-  line-height: 1.2;
+  color: #262626;
 }
 
-.story-subtitle {
-  margin: 0 0 16px 0;
-  color: #33597d;
+.duo-subtitle {
+  margin: 0 0 14px 0;
+  color: #787878;
 }
 
-.story-option-row {
+.duo-option-row {
   margin-bottom: 10px;
 }
 
-.story-option-btn {
-  border: 1px solid rgba(43, 100, 157, 0.24);
-  background: rgba(236, 246, 255, 0.97);
-  color: #11355b;
-  border-radius: 16px;
+.quiz-option {
+  width: 100%;
+  min-height: 54px;
+  border-radius: 14px;
+  border: 2px solid #a9df6f;
+  background: #c8f0a5;
+  color: #3e9222;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px;
+}
+
+.quiz-option-selected {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 rgba(102, 175, 39, 0.35);
+}
+
+.quiz-option-muted {
+  border-color: #dddddd;
+  background: #f0f0f0;
+  color: #9d9d9d;
+}
+
+.quiz-option-correct {
+  border-color: #9ddf63;
+  background: #c6eea7;
+  color: #449f20;
+}
+
+.quiz-option-wrong {
+  border-color: #efb5b5;
+  background: #f9d7d7;
+  color: #c73b3b;
+}
+
+.duo-footer {
+  margin-top: 10px;
+}
+
+.duo-cta {
+  border: none;
   min-height: 50px;
-  font-weight: 600;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 800;
 }
 
-.story-option-btn:hover {
-  background: #d8ecff;
+.duo-cta-neutral {
+  background: #5ac60b;
 }
 
-.story-option-btn-active {
-  border-color: rgba(26, 91, 150, 0.65);
-  background: rgba(199, 228, 255, 1);
+.duo-cta-success {
+  background: #58c208;
 }
 
-.story-feedback {
+.duo-cta-danger {
+  background: #ff4f4f;
+}
+
+.duo-feedback {
   margin-top: 12px;
   border-radius: 14px;
   padding: 12px;
+}
+
+.duo-feedback-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.duo-feedback-text {
   font-size: 14px;
-  font-weight: 500;
+  line-height: 1.35;
 }
 
-.story-feedback-ok {
-  background: rgba(211, 245, 219, 0.95);
-  color: #184f27;
+.duo-feedback-ok {
+  background: #d3f3bd;
+  color: #2b7f10;
 }
 
-.story-feedback-warn {
-  background: rgba(255, 235, 208, 0.95);
-  color: #714712;
+.duo-feedback-bad {
+  background: #ffdfe2;
+  color: #bc2d36;
+}
+
+.duo-feedback-placeholder {
+  background: #f1f1f1;
+  color: #7f7f7f;
+  font-size: 14px;
 }
 
 .story-footer-row {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .story-primary-btn {
-  background: linear-gradient(90deg, #1e67b5 0%, #4596de 100%);
-  color: #ffffff;
   border: none;
-  border-radius: 16px;
-  min-height: 50px;
+  min-height: 46px;
+  border-radius: 12px;
+  color: #ffffff;
   font-weight: 700;
+  background: #2f7ed5;
 }
