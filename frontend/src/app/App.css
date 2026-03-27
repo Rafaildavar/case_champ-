@@ -12,6 +12,14 @@
   color: #cfd4da;
 }
 
+.vk-user-chip {
+  border-radius: 12px;
+  border: 1px solid #3f4d5e;
+  background: #2b3138;
+  color: #cdd9e6;
+  font-size: 14px;
+}
+
 .topic-list {
   display: flex;
   flex-direction: column;

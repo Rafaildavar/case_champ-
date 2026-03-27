@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import bridge from "@vkontakte/vk-bridge";
 import { Button, Div, Group, Header, Panel, PanelHeader, View } from "@vkontakte/vkui";
 import "./App.css";
 
@@ -78,6 +79,9 @@ const TOPICS: Topic[] = [
 ];
 
 export default function App() {
+  const [vkReady, setVkReady] = useState(false);
+  const [vkError, setVkError] = useState<string | null>(null);
+  const [vkUserName, setVkUserName] = useState<string>("");
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -122,22 +126,69 @@ export default function App() {
   const estimatedResult = Math.round(calcAmount * Math.pow(1.12, calcYears));
   const estimatedProfit = estimatedResult - calcAmount;
 
+  async function initVk() {
+    try {
+      setVkError(null);
+      await bridge.send("VKWebAppInit");
+      const user = await bridge.send("VKWebAppGetUserInfo");
+      const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+      setVkUserName(fullName || "Пользователь VK");
+      setVkReady(true);
+    } catch (error) {
+      console.error("VK bridge init failed", error);
+      setVkReady(false);
+      setVkError("Мини-апп должен открываться внутри VK. Нажми «Повторить подключение».");
+    }
+  }
+
+  useEffect(() => {
+    void initVk();
+  }, []);
+
+  if (!vkReady) {
+    return (
+      <View activePanel="main">
+        <Panel id="main" className="story-panel">
+          <PanelHeader className="story-topbar">ЗПИФ Навигатор</PanelHeader>
+          <Group header={<Header className="story-group-title">Подключение VK</Header>}>
+            <Div className="topic-content-card">
+              <h3 className="topic-content-title">Требуется запуск через VK</h3>
+              <p className="topic-content-text">
+                {vkError ?? "Подключаем VK Bridge и данные пользователя..."}
+              </p>
+              <div className="topic-actions">
+                <Button className="topic-primary-btn" onClick={() => void initVk()}>
+                  Повторить подключение
+                </Button>
+              </div>
+            </Div>
+          </Group>
+        </Panel>
+      </View>
+    );
+  }
+
   return (
     <View activePanel="main">
       <Panel id="main" className="story-panel">
         <PanelHeader className="story-topbar">{activeTopic ? activeTopic.name : "ЗПИФ Навигатор"}</PanelHeader>
 
         {!activeTopic ? (
-          <Group header={<Header className="story-group-title">Выбери тему</Header>}>
-            <Div className="topic-list">
-              {TOPICS.map((topic) => (
-                <button key={topic.id} type="button" className={`topic-card ${topic.accentClass}`} onClick={() => openTopic(topic.id)}>
-                  <div className="topic-card-title">{topic.name}</div>
-                  <div className="topic-card-subtitle">{topic.description}</div>
-                </button>
-              ))}
-            </Div>
-          </Group>
+          <>
+            <Group>
+              <Div className="vk-user-chip">VK: {vkUserName}</Div>
+            </Group>
+            <Group header={<Header className="story-group-title">Выбери тему</Header>}>
+              <Div className="topic-list">
+                {TOPICS.map((topic) => (
+                  <button key={topic.id} type="button" className={`topic-card ${topic.accentClass}`} onClick={() => openTopic(topic.id)}>
+                    <div className="topic-card-title">{topic.name}</div>
+                    <div className="topic-card-subtitle">{topic.description}</div>
+                  </button>
+                ))}
+              </Div>
+            </Group>
+          </>
         ) : (
           <Group header={<Header className="story-group-title">Карточки темы</Header>}>
             <Div className="topic-content-card">
