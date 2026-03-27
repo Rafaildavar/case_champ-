@@ -21,6 +21,19 @@ type VkUser = {
   last_name: string;
 };
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<VkUser | null>(null);
@@ -35,9 +48,9 @@ export default function App() {
   useEffect(() => {
     async function init() {
       try {
-        await bridge.send("VKWebAppInit");
-        const vkUser = await bridge.send("VKWebAppGetUserInfo");
-        setUser(vkUser);
+        await withTimeout(bridge.send("VKWebAppInit"), 4000);
+        const vkUser = await withTimeout(bridge.send("VKWebAppGetUserInfo"), 4000);
+        setUser(vkUser as VkUser);
         const upsert = await apiClient.upsertUser({
           vk_id: String(vkUser.id),
           first_name: vkUser.first_name,
@@ -46,7 +59,18 @@ export default function App() {
         setUserId(upsert.user_id);
         setConsentAccepted(upsert.consent_accepted);
       } catch (error) {
-        console.error("VK init failed", error);
+        console.warn("VK init fallback mode", error);
+        try {
+          const upsert = await apiClient.upsertUser({
+            vk_id: `web_${Date.now()}`,
+            first_name: "Web",
+            last_name: "User"
+          });
+          setUserId(upsert.user_id);
+          setConsentAccepted(upsert.consent_accepted);
+        } catch (apiError) {
+          console.error("Fallback upsert failed", apiError);
+        }
       } finally {
         setLoading(false);
       }
