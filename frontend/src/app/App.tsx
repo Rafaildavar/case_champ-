@@ -81,6 +81,18 @@ export default function App() {
     () => MARATHONS.filter((m) => registeredMarathonIds.includes(m.id)),
     [registeredMarathonIds]
   );
+  const totalCompletedTopics = useMemo(
+    () =>
+      registeredMarathons.reduce((acc, marathon) => {
+        const progress = progressByMarathon[marathon.id];
+        return acc + (progress?.completedTopicIds.length ?? 0);
+      }, 0),
+    [registeredMarathons, progressByMarathon]
+  );
+  const totalAvailableTopics = useMemo(
+    () => registeredMarathons.reduce((acc, marathon) => acc + marathon.topics.length, 0),
+    [registeredMarathons]
+  );
 
   function getProgress(marathonId: string): MarathonProgress {
     return (
@@ -227,22 +239,62 @@ export default function App() {
 
         {activeTab === "profile" ? (
           <Group header={<Header className="story-group-title">Личный кабинет</Header>}>
-            <Div className="topic-content-card">
-              <div className="topic-content-title">Профиль</div>
-              <p className="topic-content-text">Пользователь: {vkUserName}</p>
-              <p className="topic-content-text">Зарегистрировано марафонов: {registeredMarathons.length}</p>
+            <Div className="profile-shell">
+              <div className="profile-hero-card">
+                <div className="profile-hero-left">
+                  <div className="profile-avatar">{vkUserName.slice(0, 1).toUpperCase()}</div>
+                  <div>
+                    <div className="profile-hero-title">Привет, {vkUserName}</div>
+                    <div className="profile-hero-subtitle">
+                      Развивай навыки и отслеживай прогресс в марафонах
+                    </div>
+                  </div>
+                </div>
+                <div className="profile-date-badge">
+                  Сегодня:{" "}
+                  {new Date().toLocaleDateString("ru-RU", { day: "2-digit", month: "long", year: "numeric" })}
+                </div>
+              </div>
+
+              <div className="profile-stats-grid">
+                <div className="profile-stat-card">
+                  <div className="profile-stat-label">Марафоны</div>
+                  <div className="profile-stat-value">{registeredMarathons.length}</div>
+                </div>
+                <div className="profile-stat-card">
+                  <div className="profile-stat-label">Пройдено тем</div>
+                  <div className="profile-stat-value">{totalCompletedTopics}</div>
+                </div>
+                <div className="profile-stat-card">
+                  <div className="profile-stat-label">Всего тем</div>
+                  <div className="profile-stat-value">{totalAvailableTopics}</div>
+                </div>
+              </div>
 
               {registeredMarathons.length === 0 ? (
-                <p className="topic-content-helper">Пока нет активных регистраций. Перейди во вкладку «Марафоны».</p>
+                <div className="profile-empty-card">
+                  <div className="profile-empty-title">Пока нет активных регистраций</div>
+                  <p className="profile-empty-text">
+                    Перейди во вкладку «Марафоны», выбери интересный поток и начни обучение.
+                  </p>
+                </div>
               ) : (
-                <div className="profile-list">
+                <div className="profile-progress-list">
                   {registeredMarathons.map((marathon) => {
                     const progress = getProgress(marathon.id);
+                    const completion = Math.round((progress.completedTopicIds.length / marathon.topics.length) * 100);
+
                     return (
-                      <div key={marathon.id} className="profile-item">
-                        <div className="profile-item-title">{marathon.title}</div>
-                        <div className="profile-item-sub">
-                          Жизни: {progress.lives}/3 · Пройдено тем: {progress.completedTopicIds.length}/{marathon.topics.length}
+                      <div key={marathon.id} className="profile-progress-card">
+                        <div className="profile-progress-head">
+                          <div className="profile-item-title">{marathon.title}</div>
+                          <span className="profile-progress-percent">{completion}%</span>
+                        </div>
+                        <div className="profile-progress-sub">
+                          Пройдено: {progress.completedTopicIds.length}/{marathon.topics.length} · Жизни: {progress.lives}/3
+                        </div>
+                        <div className="profile-progress-track">
+                          <div className="profile-progress-fill" style={{ width: `${completion}%` }} />
                         </div>
                       </div>
                     );

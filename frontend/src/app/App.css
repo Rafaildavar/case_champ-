@@ -230,18 +230,130 @@
   box-shadow: 0 2px 6px rgba(21, 38, 66, 0.08);
 }
 
-.profile-list {
-  margin-top: 10px;
+.profile-shell {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
-.profile-item {
-  border: 1px solid #d8e4f0;
-  border-radius: 12px;
-  padding: 10px;
+.profile-hero-card {
+  border-radius: 20px;
+  border: 1px solid #dbe6f4;
+  background: linear-gradient(145deg, #ffffff 0%, #f3f8ff 100%);
+  box-shadow: 0 14px 28px rgba(25, 48, 87, 0.12);
+  padding: 16px;
+}
+
+.profile-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #79b4ff 0%, #4c89ea 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 22px;
+  box-shadow: 0 8px 20px rgba(63, 117, 203, 0.35);
+}
+
+.profile-hero-title {
+  color: #172b44;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.profile-hero-subtitle {
+  margin-top: 2px;
+  color: #5f7690;
+  font-size: 14px;
+}
+
+.profile-date-badge {
+  margin-top: 12px;
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid #cde0f8;
+  background: #eaf3ff;
+  color: #24588f;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profile-stat-card {
+  border-radius: 14px;
+  border: 1px solid #dae5f3;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(22, 40, 72, 0.08);
+  padding: 12px;
+}
+
+.profile-stat-label {
+  color: #69819b;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.profile-stat-value {
+  color: #1f3550;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.profile-empty-card {
+  border-radius: 14px;
+  border: 1px dashed #ccd9e9;
   background: #f8fbff;
+  padding: 14px;
+}
+
+.profile-empty-title {
+  color: #203854;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.profile-empty-text {
+  margin: 6px 0 0 0;
+  color: #5d7894;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.profile-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-progress-card {
+  border-radius: 14px;
+  border: 1px solid #dbe5f1;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(22, 40, 72, 0.08);
+  padding: 12px;
+}
+
+.profile-progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .profile-item-title {
@@ -250,9 +362,30 @@
   font-weight: 700;
 }
 
-.profile-item-sub {
+.profile-progress-percent {
+  color: #2766aa;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.profile-progress-sub {
+  margin-top: 4px;
   color: #59748f;
   font-size: 13px;
+}
+
+.profile-progress-track {
+  margin-top: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #e8eef6;
+  overflow: hidden;
+}
+
+.profile-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #61b0ff 0%, #3f7de2 100%);
 }
 
 .marathon-badges-row {
@@ -314,5 +447,9 @@
 
   .topic-content-title {
     font-size: 20px;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
   }
 }
