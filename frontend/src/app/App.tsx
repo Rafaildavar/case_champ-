@@ -237,6 +237,22 @@ export default function App() {
           </Div>
         </Group>
 
+        {activeTab === "marathons" && !selectedMarathon ? (
+          <Group>
+            <Div className="landing-screen-head">
+              <button type="button" className="landing-screen-link">
+                Закрыть
+              </button>
+              <div className="landing-screen-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={44}>
+                <span className="landing-screen-progress-fill" />
+              </div>
+              <button type="button" className="landing-screen-link landing-screen-link-share" aria-label="Поделиться">
+                ⤴
+              </button>
+            </Div>
+          </Group>
+        ) : null}
+
         {activeTab === "profile" ? (
           <Group header={<Header className="story-group-title">Личный кабинет</Header>}>
             <Div className="profile-shell">
@@ -376,6 +392,13 @@ export default function App() {
         ) : (
           <Group header={<Header className="story-group-title">Доступные марафоны</Header>}>
             <Div className="topic-list">
+              <div className="landing-hero-card">
+                <div className="landing-hero-kicker">ПРОВЕРЬ СЕБЯ</div>
+                <h2 className="landing-hero-title">Прокачай инвестиционное мышление</h2>
+                <p className="landing-hero-text">
+                  Стартуй с базового марафона, проходи темы по шагам и фиксируй прогресс без перегруза.
+                </p>
+              </div>
               {MARATHONS.map((marathon) => {
                 const isRegistered = registeredMarathonIds.includes(marathon.id);
                 const progress = getProgress(marathon.id);
