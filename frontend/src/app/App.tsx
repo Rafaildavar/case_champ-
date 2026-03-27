@@ -330,7 +330,10 @@ export default function App() {
                 const isBlocked = progress.lives <= 0;
 
                 return (
-                  <div key={marathon.id} className="topic-card topic-card-blue">
+                  <div
+                    key={marathon.id}
+                    className={`topic-card ${marathon.status === "open" ? "topic-card-blue" : "topic-card-neutral"}`}
+                  >
                     <div className="topic-card-title">{marathon.title}</div>
                     <div className="topic-card-subtitle">{marathon.description}</div>
                     <div className="marathon-badges-row">
