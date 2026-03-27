@@ -67,7 +67,7 @@ const MARATHONS: Marathon[] = [
   },
   {
     id: "m-test",
-    title: "Тестовый марафон",
+    title: "ЗПИФ сравнение фондов",
     description: "Без ограничений по времени и жизням. Для полного тестирования потока.",
     status: "open",
     mode: "test",
