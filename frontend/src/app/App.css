@@ -504,6 +504,32 @@
   font-size: 12px;
 }
 
+.topic-task-types-wrap {
+  margin-top: 8px;
+}
+
+.topic-task-types-title {
+  color: #ddd5fa;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.topic-task-types-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.topic-task-type-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ece6ff;
+  font-size: 12px;
+  line-height: 1;
+  padding: 6px 10px;
+}
+
 @media (max-width: 420px) {
   .landing-screen-link {
     font-size: 14px;

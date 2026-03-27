@@ -8,7 +8,10 @@ type TabId = "marathons" | "profile";
 type MarathonTopic = {
   id: string;
   title: string;
+  taskTypes?: TaskType[];
 };
+
+type TaskType = "video" | "test" | "practice" | "matching" | "calculator";
 
 type Marathon = {
   id: string;
@@ -57,11 +60,16 @@ const MARATHONS: Marathon[] = [
     mode: "test",
     startAtIso: "2026-03-01T10:00:00.000Z",
     topics: [
-      { id: "mtt1", title: "Тема 1. Что такое ЗПИФ" },
-      { id: "mtt2", title: "Тема 2. Риски и горизонт" },
-      { id: "mtt3", title: "Тема 3. Доходность и дисциплина" },
-      { id: "mtt4", title: "Тема 4. Мини-стратегия" },
-      { id: "mtt5", title: "Тема 5. Финальный кейс" }
+      {
+        id: "mtt1",
+        title: "Тема 1. Базовый блок",
+        taskTypes: ["video", "test", "practice", "matching", "calculator"]
+      },
+      {
+        id: "mtt2",
+        title: "Тема 2. Практический блок",
+        taskTypes: ["video", "test", "practice", "matching", "calculator"]
+      }
     ]
   }
 ];
@@ -86,6 +94,14 @@ function formatDate(iso: string): string {
 
 function isTestMarathon(marathon: Marathon): boolean {
   return marathon.mode === "test";
+}
+
+function getTaskTypeLabel(taskType: TaskType): string {
+  if (taskType === "video") return "Видео";
+  if (taskType === "test") return "Тест";
+  if (taskType === "practice") return "Практика";
+  if (taskType === "matching") return "Сопоставление";
+  return "Калькулятор";
 }
 
 export default function App() {
@@ -371,6 +387,7 @@ export default function App() {
                   const progress = getProgress(selectedMarathon.id);
                   const state = getTopicState(selectedMarathon, index, progress);
                   const testMode = isTestMarathon(selectedMarathon);
+                  const taskTypes = topic.taskTypes ?? [];
 
                   return (
                     <div key={topic.id} className="marathon-topic-item">
@@ -383,7 +400,21 @@ export default function App() {
                             : "Статус: доступно"}
                       </div>
                       {testMode ? (
-                        <div className="marathon-topic-sub">Режим доступа: без ограничений</div>
+                        <>
+                          <div className="marathon-topic-sub">Режим доступа: без ограничений</div>
+                          {taskTypes.length > 0 ? (
+                            <div className="topic-task-types-wrap">
+                              <div className="topic-task-types-title">Задания в теме:</div>
+                              <div className="topic-task-types-list">
+                                {taskTypes.map((taskType) => (
+                                  <span key={`${topic.id}-${taskType}`} className="topic-task-type-chip">
+                                    {getTaskTypeLabel(taskType)}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
+                        </>
                       ) : (
                         <>
                           <div className="marathon-topic-sub">Откроется: {new Date(state.unlockMs).toLocaleString("ru-RU")}</div>
