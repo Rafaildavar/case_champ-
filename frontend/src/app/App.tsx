@@ -1,162 +1,108 @@
-import { useEffect, useState } from "react";
-import bridge from "@vkontakte/vk-bridge";
-import {
-  Button,
-  Div,
-  FormItem,
-  Group,
-  Header,
-  Panel,
-  PanelHeader,
-  Select,
-  SimpleCell,
-  Spinner,
-  View
-} from "@vkontakte/vkui";
-import { apiClient } from "../api/client";
+import { useState } from "react";
+import { Button, Div, Group, Header, Panel, PanelHeader, SimpleCell, View } from "@vkontakte/vkui";
 
-type VkUser = {
-  id: number;
-  first_name: string;
-  last_name: string;
+type StoryStep = {
+  id: string;
+  title: string;
+  subtitle: string;
+  options?: string[];
 };
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs);
-  });
-
-  try {
-    return await Promise.race([promise, timeoutPromise]);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
+const STORY_STEPS: StoryStep[] = [
+  {
+    id: "hook",
+    title: "Инвестиции в недвижимость без покупки квартиры",
+    subtitle: "Пройди мини-квест за 2-3 минуты и получи свой инвест-профиль.",
+    options: ["Погнали"]
+  },
+  {
+    id: "goal",
+    title: "Зачем тебе инвестировать?",
+    subtitle: "Выбери то, что ближе прямо сейчас.",
+    options: ["Сохранить", "Приумножить", "Пассивный доход"]
+  },
+  {
+    id: "horizon",
+    title: "На какой срок смотришь?",
+    subtitle: "Это влияет на подход к риску.",
+    options: ["до 1 года", "1-3 года", "3+ года"]
+  },
+  {
+    id: "myth",
+    title: "Миф или факт?",
+    subtitle: "«В фонды недвижимости можно зайти только с миллионами».",
+    options: ["Миф", "Факт"]
+  },
+  {
+    id: "scenario",
+    title: "Ситуация",
+    subtitle: "Рынок просел на 8%. Что ты сделаешь?",
+    options: ["Выйду сразу", "Сверю цель и горизонт"]
   }
+];
+
+function getProfile(answers: Record<string, string>): string {
+  const goal = answers.goal;
+  const horizon = answers.horizon;
+  const scenario = answers.scenario;
+
+  if (goal === "Сохранить" || horizon === "до 1 года") return "Осторожный";
+  if (scenario === "Выйду сразу") return "Импульсивный";
+  return "Сбалансированный";
 }
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<VkUser | null>(null);
-  const [userId, setUserId] = useState<string>("");
-  const [consentAccepted, setConsentAccepted] = useState(false);
-  const [onboardingDone, setOnboardingDone] = useState(false);
-  const [experience, setExperience] = useState("none");
-  const [goal, setGoal] = useState("learn");
-  const [horizon, setHorizon] = useState("1_3_years");
-  const [lessons, setLessons] = useState<Array<{ id: string; title: string; order: number }>>([]);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    async function init() {
-      try {
-        await withTimeout(bridge.send("VKWebAppInit"), 4000);
-        const vkUser = await withTimeout(bridge.send("VKWebAppGetUserInfo"), 4000);
-        setUser(vkUser as VkUser);
-        const upsert = await apiClient.upsertUser({
-          vk_id: String(vkUser.id),
-          first_name: vkUser.first_name,
-          last_name: vkUser.last_name
-        });
-        setUserId(upsert.user_id);
-        setConsentAccepted(upsert.consent_accepted);
-      } catch (error) {
-        console.warn("VK init fallback mode", error);
-        try {
-          const upsert = await apiClient.upsertUser({
-            vk_id: `web_${Date.now()}`,
-            first_name: "Web",
-            last_name: "User"
-          });
-          setUserId(upsert.user_id);
-          setConsentAccepted(upsert.consent_accepted);
-        } catch (apiError) {
-          console.error("Fallback upsert failed", apiError);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
+  const isFinished = stepIndex >= STORY_STEPS.length;
+  const currentStep = STORY_STEPS[stepIndex];
+  const progress = Math.round((Math.min(stepIndex + 1, STORY_STEPS.length) / STORY_STEPS.length) * 100);
 
-    void init();
-  }, []);
+  function handleAnswer(value: string) {
+    if (!currentStep) return;
 
-  async function handleConsent() {
-    if (!userId) return;
-    const result = await apiClient.saveConsent({ user_id: userId, accepted: true });
-    if (result.ok) setConsentAccepted(true);
+    setAnswers((prev) => ({ ...prev, [currentStep.id]: value }));
+    setStepIndex((prev) => prev + 1);
   }
 
-  async function handleOnboarding() {
-    if (!userId) return;
-    const result = await apiClient.saveOnboarding({ user_id: userId, experience, goal, horizon });
-    if (result.ok) {
-      setOnboardingDone(true);
-      const lessonList = await apiClient.listLessons();
-      setLessons(lessonList);
-    }
+  function handleRestart() {
+    setAnswers({});
+    setStepIndex(0);
   }
 
   return (
     <View activePanel="main">
       <Panel id="main">
-        <PanelHeader>RealEstate Learn</PanelHeader>
-        <Group header={<Header>Старт MVP</Header>}>
-          {loading ? (
+        <PanelHeader>ЗПИФ Навигатор</PanelHeader>
+        <Group header={<Header>Инвест-сторис</Header>}>
+          {!isFinished ? (
             <Div>
-              <Spinner size="m" />
-            </Div>
-          ) : !consentAccepted ? (
-            <Div>
-              <p>Это образовательный продукт, не инвестиционная рекомендация.</p>
-              <Button stretched size="l" onClick={() => void handleConsent()}>
-                Принимаю условия
-              </Button>
-            </Div>
-          ) : !onboardingDone ? (
-            <Div>
-              <FormItem top="Опыт">
-                <Select
-                  value={experience}
-                  onChange={(event) => setExperience(event.target.value)}
-                  options={[
-                    { label: "Нет опыта", value: "none" },
-                    { label: "Базовый", value: "basic" },
-                    { label: "Есть опыт", value: "advanced" }
-                  ]}
-                />
-              </FormItem>
-              <FormItem top="Цель">
-                <Select
-                  value={goal}
-                  onChange={(event) => setGoal(event.target.value)}
-                  options={[
-                    { label: "Изучить тему", value: "learn" },
-                    { label: "Сохранить капитал", value: "preserve" },
-                    { label: "Рост капитала", value: "grow" }
-                  ]}
-                />
-              </FormItem>
-              <FormItem top="Горизонт">
-                <Select
-                  value={horizon}
-                  onChange={(event) => setHorizon(event.target.value)}
-                  options={[
-                    { label: "До 1 года", value: "lt_1_year" },
-                    { label: "1-3 года", value: "1_3_years" },
-                    { label: "3+ года", value: "gt_3_years" }
-                  ]}
-                />
-              </FormItem>
-              <Button stretched size="l" onClick={() => void handleOnboarding()}>
-                Сохранить онбординг
-              </Button>
+              <p style={{ opacity: 0.8, marginBottom: 12 }}>Шаг {stepIndex + 1} из {STORY_STEPS.length} · {progress}%</p>
+              <h3 style={{ marginTop: 0 }}>{currentStep.title}</h3>
+              <p style={{ marginBottom: 16 }}>{currentStep.subtitle}</p>
+
+              {currentStep.options?.map((option) => (
+                <div key={option} style={{ marginBottom: 8 }}>
+                  <Button stretched size="l" mode="secondary" onClick={() => handleAnswer(option)}>
+                    {option}
+                  </Button>
+                </div>
+              ))}
             </Div>
           ) : (
-            <>
-              <SimpleCell subtitle="VK ID авторизация">Пользователь: {user ? `${user.first_name} ${user.last_name}` : "Не получен"}</SimpleCell>
-              <SimpleCell subtitle="Список уроков">
-                {lessons.length > 0 ? lessons.map((lesson) => `${lesson.order}. ${lesson.title}`).join(" | ") : "Уроки не загружены"}
-              </SimpleCell>
-            </>
+            <Div>
+              <h3 style={{ marginTop: 0 }}>Готово! Твой профиль: {getProfile(answers)}</h3>
+              <p style={{ marginBottom: 16 }}>
+                Ты прошла быстрый квест и получила базовый профиль. Дальше можем сделать персональный мини-план.
+              </p>
+              <SimpleCell subtitle="Награда">+10 XP · Бейдж «Первые шаги»</SimpleCell>
+              <div style={{ marginTop: 12 }}>
+                <Button stretched size="l" onClick={handleRestart}>
+                  Пройти еще раз
+                </Button>
+              </div>
+            </Div>
           )}
         </Group>
       </Panel>
