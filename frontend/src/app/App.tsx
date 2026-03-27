@@ -6,8 +6,9 @@ type Card = {
   id: string;
   title: string;
   text?: string;
-  type: "info" | "choice";
+  type: "info" | "choice" | "calc";
   options?: string[];
+  helperText?: string;
 };
 
 type Topic = {
@@ -34,8 +35,15 @@ const TOPICS: Topic[] = [
       {
         id: "t1c2",
         type: "choice",
-        title: "Сопоставь: что лучше для старта",
+        title: "Сопоставь: что подходит новичку",
+        helperText: "Выбери 2 правильных варианта.",
         options: ["Регулярные маленькие шаги", "Импульсивная покупка на весь капитал", "Смотреть на горизонт 1-3 года", "Покупать из-за FOMO"]
+      },
+      {
+        id: "t1c3",
+        type: "calc",
+        title: "Мини-калькулятор доходности",
+        helperText: "Выбери сумму и период, мы покажем примерный результат."
       }
     ]
   },
@@ -73,6 +81,8 @@ export default function App() {
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [calcAmount, setCalcAmount] = useState(50000);
+  const [calcYears, setCalcYears] = useState(3);
 
   const activeTopic = TOPICS.find((topic) => topic.id === activeTopicId) ?? null;
   const activeCard = activeTopic ? activeTopic.cards[activeCardIndex] : null;
@@ -81,12 +91,16 @@ export default function App() {
     setActiveTopicId(topicId);
     setActiveCardIndex(0);
     setSelectedOptions([]);
+    setCalcAmount(50000);
+    setCalcYears(3);
   }
 
   function backToTopics() {
     setActiveTopicId(null);
     setActiveCardIndex(0);
     setSelectedOptions([]);
+    setCalcAmount(50000);
+    setCalcYears(3);
   }
 
   function nextCard() {
@@ -94,6 +108,8 @@ export default function App() {
     if (activeCardIndex < activeTopic.cards.length - 1) {
       setActiveCardIndex((prev) => prev + 1);
       setSelectedOptions([]);
+      setCalcAmount(50000);
+      setCalcYears(3);
       return;
     }
     backToTopics();
@@ -102,6 +118,9 @@ export default function App() {
   function toggleOption(option: string) {
     setSelectedOptions((prev) => (prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]));
   }
+
+  const estimatedResult = Math.round(calcAmount * Math.pow(1.12, calcYears));
+  const estimatedProfit = estimatedResult - calcAmount;
 
   return (
     <View activePanel="main">
@@ -127,10 +146,11 @@ export default function App() {
               </div>
 
               <h3 className="topic-content-title">{activeCard?.title}</h3>
+              {activeCard?.helperText ? <p className="topic-content-helper">{activeCard.helperText}</p> : null}
 
               {activeCard?.type === "info" ? (
                 <p className="topic-content-text">{activeCard.text}</p>
-              ) : (
+              ) : activeCard?.type === "choice" ? (
                 <div className="topic-match-grid">
                   {activeCard?.options?.map((option) => (
                     <button
@@ -142,6 +162,47 @@ export default function App() {
                       {option}
                     </button>
                   ))}
+                </div>
+              ) : (
+                <div className="calc-wrap">
+                  <div className="calc-block">
+                    <div className="calc-label">Сумма вложения</div>
+                    <div className="calc-chip-row">
+                      {[10000, 50000, 100000].map((amount) => (
+                        <button
+                          key={amount}
+                          type="button"
+                          className={`calc-chip ${calcAmount === amount ? "calc-chip-active" : ""}`}
+                          onClick={() => setCalcAmount(amount)}
+                        >
+                          {amount.toLocaleString("ru-RU")} ₽
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="calc-block">
+                    <div className="calc-label">Период</div>
+                    <div className="calc-chip-row">
+                      {[1, 3, 5].map((years) => (
+                        <button
+                          key={years}
+                          type="button"
+                          className={`calc-chip ${calcYears === years ? "calc-chip-active" : ""}`}
+                          onClick={() => setCalcYears(years)}
+                        >
+                          {years} {years === 1 ? "год" : years < 5 ? "года" : "лет"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="calc-result">
+                    <div className="calc-result-line">Было вложено: {calcAmount.toLocaleString("ru-RU")} ₽</div>
+                    <div className="calc-result-line">Примерный итог: {estimatedResult.toLocaleString("ru-RU")} ₽</div>
+                    <div className="calc-result-profit">Потенциальная разница: +{estimatedProfit.toLocaleString("ru-RU")} ₽</div>
+                    <div className="calc-note">Примерный расчет, не инвестиционная рекомендация.</div>
+                  </div>
                 </div>
               )}
 
