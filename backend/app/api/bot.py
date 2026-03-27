@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from uuid import uuid4
 
@@ -69,7 +69,7 @@ SENT_KEYS_BY_USER: dict[str, set[str]] = {}
 
 def parse_iso(raw: str) -> datetime:
     normalized = raw.replace("Z", "+00:00")
-    return datetime.fromisoformat(normalized).astimezone(UTC)
+    return datetime.fromisoformat(normalized).astimezone(timezone.utc)
 
 
 def _today_count(user_id: str, now: datetime) -> int:
@@ -265,13 +265,13 @@ def _dispatch(
 
 @router.post("/event", response_model=BotResponse)
 def push_by_event(payload: EventRequest) -> BotResponse:
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     drafts = _build_event_messages(payload)
     return _dispatch(payload.user_id, now, drafts)
 
 
 @router.post("/tick", response_model=BotResponse)
 def push_by_time(payload: TickRequest) -> BotResponse:
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     drafts = _build_time_messages(payload, now)
     return _dispatch(payload.user_id, now, drafts)
