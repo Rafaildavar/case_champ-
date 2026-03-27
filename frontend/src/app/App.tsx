@@ -13,6 +13,19 @@ type MarathonTopic = {
 
 type TaskType = "video" | "test" | "practice" | "matching" | "calculator";
 
+type TaskFlowStep = "intro" | "material" | "homework";
+
+type LessonBlock =
+  | { type: "text"; text: string }
+  | { type: "video"; caption: string }
+  | { type: "reels"; caption: string }
+  | { type: "image"; caption: string; alt: string };
+
+type TestLessonBundle = {
+  intro: { title: string; lead: string; bullets: string[] };
+  material: { title: string; blocks: LessonBlock[] };
+};
+
 type Marathon = {
   id: string;
   title: string;
@@ -74,6 +87,9 @@ const MARATHONS: Marathon[] = [
   }
 ];
 
+/** Верный ответ в мини-проверке для видео-задания (тестовый марафон). */
+const VIDEO_HOMEWORK_ANSWER = "Это паевой инвестиционный фонд: ты владеешь долей в портфеле активов";
+
 type MarathonProgress = {
   lives: number;
   completedTopicIds: string[];
@@ -104,6 +120,175 @@ function getTaskTypeLabel(taskType: TaskType): string {
   return "Калькулятор";
 }
 
+function getTestLessonBundle(topicId: string, taskType: TaskType): TestLessonBundle {
+  const isTopic1 = topicId === "mtt1";
+  const topicWord = isTopic1 ? "базовом блоке" : "практическом блоке";
+
+  const baseIntro = (title: string, bullets: string[]): TestLessonBundle["intro"] => ({
+    title,
+    lead: `Сейчас ты в ${topicWord}. Сначала коротко поймём цель, потом разберём материал, и только после этого — задание. Как в Duolingo: шаг за шагом, без скачков.`,
+    bullets
+  });
+
+  switch (taskType) {
+    case "video":
+      return {
+        intro: baseIntro("Видео-урок", [
+          "Поймёшь, о чём блок и что важно удержать в голове",
+          "Посмотришь форматы: длинное видео и вертикальный «рилс»",
+          "В конце — мини-проверка на внимательность"
+        ]),
+        material: {
+          title: "Материал: видео и заметки",
+          blocks: [
+            {
+              type: "text",
+              text: `ЗПИФ — это паевой фонд: ты покупаешь долю в имуществе, а управляющая компания ведёт актив. В этом ${topicWord} мы смотрим, как это объясняется простым языком.`
+            },
+            {
+              type: "video",
+              caption: "Основное объяснение (2–4 мин.) — тестовый плеер"
+            },
+            {
+              type: "reels",
+              caption: "Вертикальный формат «как в соцсетях» — быстрый тезис"
+            },
+            {
+              type: "image",
+              caption: "Схема: инвестор → паи → фонд → недвижимость",
+              alt: "Схема ЗПИФ"
+            },
+            {
+              type: "text",
+              text: "Запомни: горизонт и дисциплина важнее «идеальной точки входа»."
+            }
+          ]
+        }
+      };
+    case "test":
+      return {
+        intro: baseIntro("Тест по пройденному", [
+          "Напомним ключевые тезисы из блока",
+          "Закрепим текстом и визуалом",
+          "Потом ответишь на вопрос с вариантами"
+        ]),
+        material: {
+          title: "Материал: конспект перед тестом",
+          blocks: [
+            {
+              type: "text",
+              text: "Перед тестом полезно повторить три опоры: что такое пай, кто управляет фондом, зачем нужна диверсификация."
+            },
+            {
+              type: "image",
+              caption: "Иллюстрация: распределение рисков",
+              alt: "Диверсификация"
+            },
+            {
+              type: "reels",
+              caption: "60 секунд: «главное перед квизом»"
+            },
+            {
+              type: "text",
+              text: "Когда будешь готов, нажми «Далее» — откроется сам тест."
+            }
+          ]
+        }
+      };
+    case "practice":
+      return {
+        intro: baseIntro("Практика: своя формулировка", [
+          "Коротко вспомним рамку темы",
+          "Посмотришь подсказки в картинках",
+          "Затем сформулируешь ответ своими словами"
+        ]),
+        material: {
+          title: "Материал: подсказки к заданию",
+          blocks: [
+            {
+              type: "text",
+              text: "Практика — это не «угадайка», а закрепление: напиши мини-план или правило, которое ты возьмёшь в реальность."
+            },
+            {
+              type: "image",
+              caption: "Чек-лист: горизонт, сумма, пересмотр",
+              alt: "Чек-лист"
+            },
+            {
+              type: "image",
+              caption: "Пример формулировки цели на квартал",
+              alt: "Пример цели"
+            },
+            {
+              type: "text",
+              text: "Дальше откроется поле ввода: достаточно 2–3 предложений."
+            }
+          ]
+        }
+      };
+    case "matching":
+      return {
+        intro: baseIntro("Сопоставление понятий", [
+          "Введём пары «термин — смысл»",
+          "Закрепим визуально",
+          "Потом выберешь верное соответствие в задании"
+        ]),
+        material: {
+          title: "Материал: пары и примеры",
+          blocks: [
+            {
+              type: "text",
+              text: "Сопоставление помогает перевести абстрактные слова в жизненные ситуации: пай, ликвидность, горизонт."
+            },
+            {
+              type: "image",
+              caption: "Таблица: термин / простыми словами",
+              alt: "Таблица терминов"
+            },
+            {
+              type: "reels",
+              caption: "Быстрый разбор: «что с чем путают чаще всего»"
+            },
+            {
+              type: "text",
+              text: "Когда прочитаешь — переходи к заданию и выбери один верный вариант."
+            }
+          ]
+        }
+      };
+    default:
+      return {
+        intro: baseIntro("Калькулятор доходности", [
+          "Напомним формулу изменения позиции",
+          "Покажем пример на цифрах",
+          "Потом введёшь свои значения"
+        ]),
+        material: {
+          title: "Материал: как считать результат",
+          blocks: [
+            {
+              type: "text",
+              text: "Упрощённо: результат сделки по позиции ≈ (текущая цена − цена входа) × количество. Это учебный пример, не индивидуальная рекомендация."
+            },
+            {
+              type: "image",
+              caption: "Формула на «стикере»",
+              alt: "Формула PnL"
+            },
+            {
+              type: "video",
+              caption: "Мини-разбор: откуда берутся цифры в примере"
+            },
+            {
+              type: "text",
+              text: "Дальше откроется калькулятор — введи числа и сверься с подсказкой."
+            }
+          ]
+        }
+      };
+  }
+}
+
 export default function App() {
   const [vkReady, setVkReady] = useState(false);
   const [vkError, setVkError] = useState<string | null>(null);
@@ -123,6 +308,10 @@ export default function App() {
   const [calcUnits, setCalcUnits] = useState("10");
   const [calcBuyPrice, setCalcBuyPrice] = useState("110");
   const [calcCurrentPrice, setCalcCurrentPrice] = useState("112");
+  const [activePanel, setActivePanel] = useState<"main" | "task">("main");
+  const [taskFlowStep, setTaskFlowStep] = useState<TaskFlowStep>("intro");
+  const [showTaskSuccess, setShowTaskSuccess] = useState(false);
+  const [videoHomeworkChoice, setVideoHomeworkChoice] = useState<string | null>(null);
 
   const selectedMarathon = MARATHONS.find((m) => m.id === selectedMarathonId) ?? null;
 
@@ -146,6 +335,11 @@ export default function App() {
   const activeTestTopic =
     selectedMarathon && activeTestTask ? selectedMarathon.topics.find((topic) => topic.id === activeTestTask.topicId) ?? null : null;
 
+  const taskFlowLesson = useMemo(() => {
+    if (!activeTestTask) return null;
+    return getTestLessonBundle(activeTestTask.topicId, activeTestTask.taskType);
+  }, [activeTestTask]);
+
   function getProgress(marathonId: string): MarathonProgress {
     return (
       progressByMarathon[marathonId] ?? {
@@ -168,11 +362,43 @@ export default function App() {
     setCalcUnits("10");
     setCalcBuyPrice("110");
     setCalcCurrentPrice("112");
+    setVideoHomeworkChoice(null);
+  }
+
+  function closeTaskFlow() {
+    setActivePanel("main");
+    setActiveTestTask(null);
+    setTaskFlowStep("intro");
+    setShowTaskSuccess(false);
+    resetTaskInteractionState();
   }
 
   function openTestTask(topicId: string, taskType: TaskType) {
     setActiveTestTask({ topicId, taskType });
+    setTaskFlowStep("intro");
+    setShowTaskSuccess(false);
     resetTaskInteractionState();
+    setActivePanel("task");
+  }
+
+  function taskFlowBack() {
+    if (showTaskSuccess) {
+      closeTaskFlow();
+      return;
+    }
+    if (taskFlowStep === "homework") setTaskFlowStep("material");
+    else if (taskFlowStep === "material") setTaskFlowStep("intro");
+    else closeTaskFlow();
+  }
+
+  function taskFlowNext() {
+    if (taskFlowStep === "intro") setTaskFlowStep("material");
+    else if (taskFlowStep === "material") setTaskFlowStep("homework");
+  }
+
+  function finishHomework(topicId: string, taskType: TaskType) {
+    markTestTaskCompleted(topicId, taskType);
+    setShowTaskSuccess(true);
   }
 
   function markTestTaskCompleted(topicId: string, taskType: TaskType) {
@@ -289,6 +515,9 @@ export default function App() {
 
   useEffect(() => {
     setActiveTestTask(null);
+    setActivePanel("main");
+    setTaskFlowStep("intro");
+    setShowTaskSuccess(false);
   }, [activeTab, selectedMarathonId]);
 
   if (!vkReady) {
@@ -315,7 +544,7 @@ export default function App() {
   }
 
   return (
-    <View activePanel="main">
+    <View activePanel={activePanel}>
       <Panel id="main" className="story-panel">
         <PanelHeader className="story-topbar">{selectedMarathon ? selectedMarathon.title : "ЗПИФ Навигатор"}</PanelHeader>
         <Group>
@@ -534,178 +763,6 @@ export default function App() {
                 })}
               </div>
 
-              {isTestMarathon(selectedMarathon) && activeTestTask && activeTestTopic ? (
-                <div className="test-task-screen">
-                  <div className="test-task-head">
-                    <div className="test-task-kicker">
-                      {activeTestTopic.title} · {getTaskTypeLabel(activeTestTask.taskType)}
-                    </div>
-                    <button type="button" className="test-task-close" onClick={() => setActiveTestTask(null)}>
-                      Закрыть
-                    </button>
-                  </div>
-
-                  {activeTestTask.taskType === "video" ? (
-                    <div className="test-task-body">
-                      <div className="test-task-video">Видео-превью</div>
-                      <p className="test-task-text">
-                        Посмотри вводный ролик по теме и отметь выполнение. Для теста считаем, что видео просмотрено.
-                      </p>
-                      <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "video")}>
-                        Отметить «Видео просмотрено»
-                      </Button>
-                    </div>
-                  ) : null}
-
-                  {activeTestTask.taskType === "test" ? (
-                    <div className="test-task-body">
-                      <div className="test-task-question">Что чаще всего делает новичок перед стартом инвестиций?</div>
-                      <div className="test-task-options">
-                        {[
-                          "Сразу покупает актив без плана",
-                          "Формирует стратегию и горизонт",
-                          "Инвестирует все средства в один инструмент"
-                        ].map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            className={`test-task-option ${quizAnswer === option ? "test-task-option-active" : ""}`}
-                            onClick={() => {
-                              setQuizAnswer(option);
-                              setQuizChecked(false);
-                            }}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="topic-actions">
-                        <Button
-                          mode="secondary"
-                          className="topic-secondary-btn"
-                          disabled={!quizAnswer}
-                          onClick={() => setQuizChecked(true)}
-                        >
-                          Проверить ответ
-                        </Button>
-                        {quizChecked && quizAnswer === "Формирует стратегию и горизонт" ? (
-                          <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "test")}>
-                            Завершить тест
-                          </Button>
-                        ) : null}
-                      </div>
-                      {quizChecked ? (
-                        <div className="test-task-hint">
-                          {quizAnswer === "Формирует стратегию и горизонт"
-                            ? "Верно! Такой подход снижает риск и помогает держать дисциплину."
-                            : "Почти. Попробуй вариант про стратегию и горизонт."}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-
-                  {activeTestTask.taskType === "practice" ? (
-                    <div className="test-task-body">
-                      <div className="test-task-question">Практика: опиши свою мини-стратегию на 2-3 предложения.</div>
-                      <textarea
-                        className="test-task-textarea"
-                        value={practiceDraft}
-                        onChange={(event) => {
-                          setPracticeDraft(event.target.value);
-                          setPracticeSubmitted(false);
-                        }}
-                        placeholder="Например: инвестирую регулярно, диверсифицирую, пересматриваю портфель раз в квартал."
-                      />
-                      <div className="topic-actions">
-                        <Button
-                          mode="secondary"
-                          className="topic-secondary-btn"
-                          disabled={practiceDraft.trim().length < 10}
-                          onClick={() => setPracticeSubmitted(true)}
-                        >
-                          Отправить практику
-                        </Button>
-                        {practiceSubmitted ? (
-                          <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "practice")}>
-                            Завершить практику
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {activeTestTask.taskType === "matching" ? (
-                    <div className="test-task-body">
-                      <div className="test-task-question">Сопоставление: что лучше всего связано с дисциплиной инвестора?</div>
-                      <div className="test-task-options">
-                        {["Панические покупки", "Регулярные взносы по плану", "Полный отказ от анализа"].map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            className={`test-task-option ${matchingChoice === option ? "test-task-option-active" : ""}`}
-                            onClick={() => {
-                              setMatchingChoice(option);
-                              setMatchingChecked(false);
-                            }}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="topic-actions">
-                        <Button
-                          mode="secondary"
-                          className="topic-secondary-btn"
-                          disabled={!matchingChoice}
-                          onClick={() => setMatchingChecked(true)}
-                        >
-                          Проверить сопоставление
-                        </Button>
-                        {matchingChecked && matchingChoice === "Регулярные взносы по плану" ? (
-                          <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "matching")}>
-                            Завершить сопоставление
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {activeTestTask.taskType === "calculator" ? (
-                    <div className="test-task-body">
-                      <div className="test-task-question">Калькулятор: рассчитай финансовый результат позиции.</div>
-                      <div className="test-task-calc-grid">
-                        <label className="test-task-field">
-                          Количество
-                          <input value={calcUnits} onChange={(event) => setCalcUnits(event.target.value)} className="test-task-input" />
-                        </label>
-                        <label className="test-task-field">
-                          Цена входа
-                          <input value={calcBuyPrice} onChange={(event) => setCalcBuyPrice(event.target.value)} className="test-task-input" />
-                        </label>
-                        <label className="test-task-field">
-                          Текущая цена
-                          <input value={calcCurrentPrice} onChange={(event) => setCalcCurrentPrice(event.target.value)} className="test-task-input" />
-                        </label>
-                      </div>
-                      <div className="test-task-result">
-                        Результат:{" "}
-                        {(() => {
-                          const units = Number(calcUnits) || 0;
-                          const buy = Number(calcBuyPrice) || 0;
-                          const current = Number(calcCurrentPrice) || 0;
-                          const pnl = (current - buy) * units;
-                          const sign = pnl >= 0 ? "+" : "";
-                          return `${sign}${pnl.toFixed(2)} руб.`;
-                        })()}
-                      </div>
-                      <Button className="topic-primary-btn" onClick={() => markTestTaskCompleted(activeTestTopic.id, "calculator")}>
-                        Завершить калькулятор
-                      </Button>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
               <div className="topic-actions">
                 <Button mode="secondary" className="topic-secondary-btn" onClick={() => setSelectedMarathonId(null)}>
                   Назад к списку марафонов
@@ -767,6 +824,294 @@ export default function App() {
             </Div>
           </Group>
         )}
+      </Panel>
+
+      <Panel id="task" className="story-panel duo-task-panel">
+        <PanelHeader className="story-topbar duo-task-panel-header">
+          <div className="duo-task-header-row">
+            <button type="button" className="duo-task-back" onClick={taskFlowBack} aria-label="Назад">
+              ←
+            </button>
+            <div className="duo-task-header-title">
+              {activeTestTopic && activeTestTask ? `${activeTestTopic.title} · ${getTaskTypeLabel(activeTestTask.taskType)}` : "Задание"}
+            </div>
+            <div className="duo-task-step-badge">
+              {taskFlowStep === "intro" ? "1/3" : taskFlowStep === "material" ? "2/3" : "3/3"}
+            </div>
+          </div>
+        </PanelHeader>
+        <Group>
+          <Div className="duo-task-inner">
+            {!activeTestTask || !activeTestTopic || !taskFlowLesson ? (
+              <p className="topic-content-text">Загрузка…</p>
+            ) : showTaskSuccess ? (
+              <div className="duo-task-success">
+                <div className="duo-task-success-title">Отлично!</div>
+                <p className="duo-task-success-text">Задание «{getTaskTypeLabel(activeTestTask.taskType)}» выполнено.</p>
+                <Button className="topic-primary-btn" onClick={closeTaskFlow}>
+                  Вернуться к теме
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="duo-flow-progress" aria-hidden>
+                  <div className="duo-flow-progress-track">
+                    <div
+                      className="duo-flow-progress-fill"
+                      style={{
+                        width: taskFlowStep === "intro" ? "33%" : taskFlowStep === "material" ? "66%" : "100%"
+                      }}
+                    />
+                  </div>
+                  <div className="duo-flow-progress-labels">
+                    <span className={taskFlowStep === "intro" ? "duo-flow-active" : ""}>Введение</span>
+                    <span className={taskFlowStep === "material" ? "duo-flow-active" : ""}>Материал</span>
+                    <span className={taskFlowStep === "homework" ? "duo-flow-active" : ""}>Задание</span>
+                  </div>
+                </div>
+
+                {taskFlowStep === "intro" ? (
+                  <div className="duo-step-body">
+                    <div className="duo-step-kicker">Шаг 1</div>
+                    <h2 className="duo-intro-title">{taskFlowLesson.intro.title}</h2>
+                    <p className="duo-intro-lead">{taskFlowLesson.intro.lead}</p>
+                    <ul className="duo-intro-list">
+                      {taskFlowLesson.intro.bullets.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                    <Button className="topic-primary-btn" onClick={taskFlowNext}>
+                      Далее
+                    </Button>
+                  </div>
+                ) : null}
+
+                {taskFlowStep === "material" ? (
+                  <div className="duo-step-body">
+                    <div className="duo-step-kicker">Шаг 2 · Материал</div>
+                    <h2 className="duo-intro-title">{taskFlowLesson.material.title}</h2>
+                    <div className="duo-material-stack">
+                      {taskFlowLesson.material.blocks.map((block, idx) => {
+                        if (block.type === "text") {
+                          return (
+                            <p key={idx} className="duo-material-text">
+                              {block.text}
+                            </p>
+                          );
+                        }
+                        if (block.type === "video") {
+                          return (
+                            <div key={idx} className="duo-material-block">
+                              <div className="duo-video-placeholder">▶</div>
+                              <div className="duo-video-caption">{block.caption}</div>
+                            </div>
+                          );
+                        }
+                        if (block.type === "reels") {
+                          return (
+                            <div key={idx} className="duo-material-block">
+                              <div className="duo-reels-placeholder">{block.caption}</div>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div key={idx} className="duo-material-block">
+                            <div className="duo-image-placeholder" role="img" aria-label={block.alt}>
+                              <span className="duo-image-placeholder-label">{block.caption}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Button className="topic-primary-btn" onClick={taskFlowNext}>
+                      Далее к заданию
+                    </Button>
+                  </div>
+                ) : null}
+
+                {taskFlowStep === "homework" ? (
+                  <div className="duo-step-body duo-homework">
+                    <div className="duo-step-kicker">Шаг 3 · Домашнее задание</div>
+                    <h2 className="duo-intro-title">Закрепление</h2>
+                    <p className="duo-intro-lead">Сделай интерактивную часть. После успешного выполнения задание будет засчитано.</p>
+
+                    {activeTestTask.taskType === "video" ? (
+                      <div className="test-task-body">
+                        <div className="test-task-question">Мини-проверка: что верно про ЗПИФ?</div>
+                        <div className="test-task-options">
+                          {[VIDEO_HOMEWORK_ANSWER, "Это всегда один конкретный объект в личной собственности"].map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={`test-task-option ${videoHomeworkChoice === option ? "test-task-option-active" : ""}`}
+                              onClick={() => setVideoHomeworkChoice(option)}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                        <Button
+                          className="topic-primary-btn"
+                          disabled={videoHomeworkChoice !== VIDEO_HOMEWORK_ANSWER}
+                          onClick={() => finishHomework(activeTestTopic.id, "video")}
+                        >
+                          Завершить задание
+                        </Button>
+                      </div>
+                    ) : null}
+
+                    {activeTestTask.taskType === "test" ? (
+                      <div className="test-task-body">
+                        <div className="test-task-question">Что чаще всего делает новичок перед стартом инвестиций?</div>
+                        <div className="test-task-options">
+                          {[
+                            "Сразу покупает актив без плана",
+                            "Формирует стратегию и горизонт",
+                            "Инвестирует все средства в один инструмент"
+                          ].map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={`test-task-option ${quizAnswer === option ? "test-task-option-active" : ""}`}
+                              onClick={() => {
+                                setQuizAnswer(option);
+                                setQuizChecked(false);
+                              }}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="topic-actions">
+                          <Button
+                            mode="secondary"
+                            className="topic-secondary-btn"
+                            disabled={!quizAnswer}
+                            onClick={() => setQuizChecked(true)}
+                          >
+                            Проверить ответ
+                          </Button>
+                          {quizChecked && quizAnswer === "Формирует стратегию и горизонт" ? (
+                            <Button className="topic-primary-btn" onClick={() => finishHomework(activeTestTopic.id, "test")}>
+                              Завершить тест
+                            </Button>
+                          ) : null}
+                        </div>
+                        {quizChecked ? (
+                          <div className="test-task-hint">
+                            {quizAnswer === "Формирует стратегию и горизонт"
+                              ? "Верно! Такой подход снижает риск и помогает держать дисциплину."
+                              : "Почти. Попробуй вариант про стратегию и горизонт."}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {activeTestTask.taskType === "practice" ? (
+                      <div className="test-task-body">
+                        <div className="test-task-question">Практика: опиши свою мини-стратегию на 2–3 предложения.</div>
+                        <textarea
+                          className="test-task-textarea"
+                          value={practiceDraft}
+                          onChange={(event) => {
+                            setPracticeDraft(event.target.value);
+                            setPracticeSubmitted(false);
+                          }}
+                          placeholder="Например: инвестирую регулярно, диверсифицирую, пересматриваю портфель раз в квартал."
+                        />
+                        <div className="topic-actions">
+                          <Button
+                            mode="secondary"
+                            className="topic-secondary-btn"
+                            disabled={practiceDraft.trim().length < 10}
+                            onClick={() => setPracticeSubmitted(true)}
+                          >
+                            Отправить практику
+                          </Button>
+                          {practiceSubmitted ? (
+                            <Button className="topic-primary-btn" onClick={() => finishHomework(activeTestTopic.id, "practice")}>
+                              Завершить практику
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {activeTestTask.taskType === "matching" ? (
+                      <div className="test-task-body">
+                        <div className="test-task-question">Сопоставление: что лучше всего связано с дисциплиной инвестора?</div>
+                        <div className="test-task-options">
+                          {["Панические покупки", "Регулярные взносы по плану", "Полный отказ от анализа"].map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={`test-task-option ${matchingChoice === option ? "test-task-option-active" : ""}`}
+                              onClick={() => {
+                                setMatchingChoice(option);
+                                setMatchingChecked(false);
+                              }}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="topic-actions">
+                          <Button
+                            mode="secondary"
+                            className="topic-secondary-btn"
+                            disabled={!matchingChoice}
+                            onClick={() => setMatchingChecked(true)}
+                          >
+                            Проверить сопоставление
+                          </Button>
+                          {matchingChecked && matchingChoice === "Регулярные взносы по плану" ? (
+                            <Button className="topic-primary-btn" onClick={() => finishHomework(activeTestTopic.id, "matching")}>
+                              Завершить сопоставление
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {activeTestTask.taskType === "calculator" ? (
+                      <div className="test-task-body">
+                        <div className="test-task-question">Калькулятор: рассчитай финансовый результат позиции.</div>
+                        <div className="test-task-calc-grid">
+                          <label className="test-task-field">
+                            Количество
+                            <input value={calcUnits} onChange={(event) => setCalcUnits(event.target.value)} className="test-task-input" />
+                          </label>
+                          <label className="test-task-field">
+                            Цена входа
+                            <input value={calcBuyPrice} onChange={(event) => setCalcBuyPrice(event.target.value)} className="test-task-input" />
+                          </label>
+                          <label className="test-task-field">
+                            Текущая цена
+                            <input value={calcCurrentPrice} onChange={(event) => setCalcCurrentPrice(event.target.value)} className="test-task-input" />
+                          </label>
+                        </div>
+                        <div className="test-task-result">
+                          Результат:{" "}
+                          {(() => {
+                            const units = Number(calcUnits) || 0;
+                            const buy = Number(calcBuyPrice) || 0;
+                            const current = Number(calcCurrentPrice) || 0;
+                            const pnl = (current - buy) * units;
+                            const sign = pnl >= 0 ? "+" : "";
+                            return `${sign}${pnl.toFixed(2)} руб.`;
+                          })()}
+                        </div>
+                        <Button className="topic-primary-btn" onClick={() => finishHomework(activeTestTopic.id, "calculator")}>
+                          Завершить калькулятор
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </>
+            )}
+          </Div>
+        </Group>
       </Panel>
     </View>
   );

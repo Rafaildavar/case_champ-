@@ -668,6 +668,216 @@
   padding: 10px;
 }
 
+.duo-task-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.duo-task-panel-header .vkuiPanelHeader__content {
+  max-width: 100%;
+}
+
+.duo-task-header-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.duo-task-back {
+  border: none;
+  background: transparent;
+  color: #e8e0ff;
+  font-size: 22px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+}
+
+.duo-task-header-title {
+  color: #f1edff;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.duo-task-step-badge {
+  border-radius: 999px;
+  border: 1px solid rgba(191, 178, 247, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ded3ff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+}
+
+.duo-task-inner {
+  padding-bottom: 20px;
+}
+
+.duo-flow-progress {
+  margin-bottom: 16px;
+}
+
+.duo-flow-progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.duo-flow-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c9b6ff 0%, #8e63ff 100%);
+  transition: width 0.25s ease;
+}
+
+.duo-flow-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #9a92b8;
+}
+
+.duo-flow-progress-labels .duo-flow-active {
+  color: #f0eaff;
+  font-weight: 700;
+}
+
+.duo-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.duo-step-kicker {
+  color: #a79fc7;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.duo-intro-title {
+  margin: 0;
+  color: #f3f0ff;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.duo-intro-lead {
+  margin: 0;
+  color: #c9c2e6;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.duo-intro-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #d3caef;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.duo-material-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.duo-material-text {
+  margin: 0;
+  color: #d3caef;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.duo-material-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.duo-video-placeholder {
+  border-radius: 16px;
+  border: 1px solid rgba(191, 178, 247, 0.28);
+  background: rgba(0, 0, 0, 0.25);
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: #e8e0ff;
+  font-size: 36px;
+}
+
+.duo-video-caption {
+  color: #b6afcf;
+  font-size: 13px;
+}
+
+.duo-reels-placeholder {
+  border-radius: 16px;
+  border: 1px dashed rgba(188, 174, 249, 0.35);
+  background: linear-gradient(180deg, rgba(40, 32, 72, 0.9) 0%, rgba(20, 18, 32, 0.95) 100%);
+  padding: 12px;
+  min-height: 220px;
+  max-width: 140px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  color: #ddd5fa;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.duo-image-placeholder {
+  border-radius: 16px;
+  border: 1px solid rgba(191, 178, 247, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.duo-image-placeholder-label {
+  color: #d3caef;
+  font-size: 13px;
+  text-align: center;
+}
+
+.duo-homework .test-task-body {
+  margin-top: 0;
+}
+
+.duo-task-success {
+  border-radius: 18px;
+  border: 1px solid rgba(130, 230, 168, 0.35);
+  background: rgba(46, 120, 80, 0.22);
+  padding: 18px;
+  text-align: center;
+}
+
+.duo-task-success-title {
+  color: #c9f4da;
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.duo-task-success-text {
+  margin: 0 0 14px 0;
+  color: #d8f5e4;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 @media (max-width: 420px) {
   .landing-screen-link {
     font-size: 14px;
