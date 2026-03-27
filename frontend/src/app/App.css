@@ -1,8 +1,8 @@
 .story-panel {
   min-height: 100svh;
   background:
-    radial-gradient(circle at top right, rgba(126, 101, 255, 0.25), rgba(126, 101, 255, 0) 42%),
-    linear-gradient(180deg, #3d2996 0%, #311f87 55%, #2b1a7e 100%);
+    radial-gradient(circle at top right, rgba(148, 120, 255, 0.2), rgba(148, 120, 255, 0) 42%),
+    linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
 }
 
 .story-topbar {
@@ -71,7 +71,7 @@
 .landing-hero-card {
   border-radius: 26px;
   border: 1px solid rgba(175, 160, 246, 0.2);
-  background: linear-gradient(165deg, rgba(18, 17, 35, 0.95) 0%, rgba(27, 25, 47, 0.95) 100%);
+  background: linear-gradient(165deg, rgba(16, 16, 21, 0.98) 0%, rgba(24, 22, 38, 0.98) 100%);
   color: #ffffff;
   padding: 22px 18px 20px;
   box-shadow: 0 20px 28px rgba(9, 6, 27, 0.45);
@@ -111,7 +111,7 @@
 
 .topic-card-blue,
 .topic-card-neutral {
-  background: linear-gradient(165deg, rgba(18, 17, 35, 0.96) 0%, rgba(29, 25, 53, 0.96) 100%);
+  background: linear-gradient(165deg, rgba(16, 16, 21, 0.98) 0%, rgba(25, 22, 40, 0.98) 100%);
 }
 
 .topic-card-title {
@@ -131,7 +131,7 @@
 .topic-content-card {
   border-radius: 24px;
   border: 1px solid rgba(182, 171, 240, 0.18);
-  background: linear-gradient(165deg, rgba(18, 17, 35, 0.96) 0%, rgba(29, 25, 53, 0.96) 100%);
+  background: linear-gradient(165deg, rgba(16, 16, 21, 0.98) 0%, rgba(25, 22, 40, 0.98) 100%);
   color: #e9e4fb;
   padding: 18px 16px;
   box-shadow: 0 18px 26px rgba(7, 5, 26, 0.42);
@@ -311,7 +311,7 @@
 .profile-progress-card {
   border-radius: 20px;
   border: 1px solid rgba(182, 171, 240, 0.2);
-  background: linear-gradient(165deg, rgba(18, 17, 35, 0.96) 0%, rgba(29, 25, 53, 0.96) 100%);
+  background: linear-gradient(165deg, rgba(16, 16, 21, 0.98) 0%, rgba(25, 22, 40, 0.98) 100%);
   box-shadow: 0 18px 26px rgba(7, 5, 26, 0.42);
 }
 
@@ -469,6 +469,11 @@
 .status-open {
   background: rgba(111, 230, 166, 0.2);
   color: #8eedbd;
+}
+
+.status-test {
+  background: rgba(188, 157, 255, 0.22);
+  color: #e1d2ff;
 }
 
 .status-closed {

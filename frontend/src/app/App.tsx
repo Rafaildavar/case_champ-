@@ -15,6 +15,7 @@ type Marathon = {
   title: string;
   description: string;
   status: "open" | "closed";
+  mode?: "regular" | "test";
   startAtIso: string;
   topics: MarathonTopic[];
 };
@@ -25,6 +26,7 @@ const MARATHONS: Marathon[] = [
     title: "Марафон: Старт в ЗПИФ",
     description: "Для новичков. База + практика + мини-квиз.",
     status: "open",
+    mode: "regular",
     startAtIso: "2026-03-28T10:00:00.000Z",
     topics: [
       { id: "m1t1", title: "Тема 1. Что такое ЗПИФ" },
@@ -39,11 +41,27 @@ const MARATHONS: Marathon[] = [
     title: "Марафон: Продвинутый трек",
     description: "Откроется позже. Для тех, кто прошел базовый поток.",
     status: "closed",
+    mode: "regular",
     startAtIso: "2026-04-15T10:00:00.000Z",
     topics: [
       { id: "m2t1", title: "Тема 1. Анализ фонда" },
       { id: "m2t2", title: "Тема 2. Ошибки новичка" },
       { id: "m2t3", title: "Тема 3. Сборка портфеля" }
+    ]
+  },
+  {
+    id: "m-test",
+    title: "Тестовый марафон",
+    description: "Без ограничений по времени и жизням. Для полного тестирования потока.",
+    status: "open",
+    mode: "test",
+    startAtIso: "2026-03-01T10:00:00.000Z",
+    topics: [
+      { id: "mtt1", title: "Тема 1. Что такое ЗПИФ" },
+      { id: "mtt2", title: "Тема 2. Риски и горизонт" },
+      { id: "mtt3", title: "Тема 3. Доходность и дисциплина" },
+      { id: "mtt4", title: "Тема 4. Мини-стратегия" },
+      { id: "mtt5", title: "Тема 5. Финальный кейс" }
     ]
   }
 ];
@@ -64,6 +82,10 @@ function formatDate(iso: string): string {
     hour: "2-digit",
     minute: "2-digit"
   });
+}
+
+function isTestMarathon(marathon: Marathon): boolean {
+  return marathon.mode === "test";
 }
 
 export default function App() {
@@ -164,6 +186,17 @@ export default function App() {
 
   function getTopicState(marathon: Marathon, topicIndex: number, progress: MarathonProgress) {
     const topic = marathon.topics[topicIndex];
+    if (isTestMarathon(marathon)) {
+      const now = Date.now();
+      return {
+        isLocked: false,
+        isCompleted: progress.completedTopicIds.includes(topic.id),
+        isMissedByTime: false,
+        unlockMs: now,
+        windowEndsMs: now
+      };
+    }
+
     const now = Date.now();
     const startMs = new Date(marathon.startAtIso).getTime();
     const unlockMs = startMs + topicIndex * 24 * 60 * 60 * 1000;
@@ -322,15 +355,22 @@ export default function App() {
         ) : selectedMarathon ? (
           <Group header={<Header className="story-group-title">{selectedMarathon.title}</Header>}>
             <Div className="topic-content-card">
-              <p className="topic-content-helper">
-                Новая тема открывается каждые 24 часа и только после прохождения предыдущей. Всего 3 жизни.
-              </p>
-              <p className="topic-content-text">Дата старта: {formatDate(selectedMarathon.startAtIso)}</p>
+              {isTestMarathon(selectedMarathon) ? (
+                <p className="topic-content-helper">Тестовый режим: все темы доступны сразу, без ограничений по времени и жизням.</p>
+              ) : (
+                <>
+                  <p className="topic-content-helper">
+                    Новая тема открывается каждые 24 часа и только после прохождения предыдущей. Всего 3 жизни.
+                  </p>
+                  <p className="topic-content-text">Дата старта: {formatDate(selectedMarathon.startAtIso)}</p>
+                </>
+              )}
 
               <div className="topic-list">
                 {selectedMarathon.topics.map((topic, index) => {
                   const progress = getProgress(selectedMarathon.id);
                   const state = getTopicState(selectedMarathon, index, progress);
+                  const testMode = isTestMarathon(selectedMarathon);
 
                   return (
                     <div key={topic.id} className="marathon-topic-item">
@@ -342,41 +382,51 @@ export default function App() {
                             ? "Статус: закрыто"
                             : "Статус: доступно"}
                       </div>
-                      <div className="marathon-topic-sub">Откроется: {new Date(state.unlockMs).toLocaleString("ru-RU")}</div>
-                      <div className="marathon-topic-sub">Окно прохождения: до {new Date(state.windowEndsMs).toLocaleString("ru-RU")}</div>
+                      {testMode ? (
+                        <div className="marathon-topic-sub">Режим доступа: без ограничений</div>
+                      ) : (
+                        <>
+                          <div className="marathon-topic-sub">Откроется: {new Date(state.unlockMs).toLocaleString("ru-RU")}</div>
+                          <div className="marathon-topic-sub">Окно прохождения: до {new Date(state.windowEndsMs).toLocaleString("ru-RU")}</div>
+                        </>
+                      )}
 
                       <div className="topic-actions">
                         <Button className="topic-primary-btn" disabled={state.isLocked || state.isCompleted} onClick={() => completeTopic(topic.id)}>
                           Пройти тему
                         </Button>
-                        <Button
-                          mode="secondary"
-                          className="topic-secondary-btn"
-                          disabled={state.isLocked || progress.lives <= 0}
-                          onClick={() => loseLifeByTest(topic.id)}
-                        >
-                          Не прошел тест (-1 жизнь)
-                        </Button>
+                        {!testMode ? (
+                          <Button
+                            mode="secondary"
+                            className="topic-secondary-btn"
+                            disabled={state.isLocked || progress.lives <= 0}
+                            onClick={() => loseLifeByTest(topic.id)}
+                          >
+                            Не прошел тест (-1 жизнь)
+                          </Button>
+                        ) : null}
                       </div>
 
-                      <div className="topic-actions">
-                        <Button
-                          mode="secondary"
-                          className="topic-secondary-btn"
-                          disabled={state.isLocked || progress.lives <= 0}
-                          onClick={() => loseLifeByTask(topic.id)}
-                        >
-                          Не выполнил задание (-1 жизнь)
-                        </Button>
-                        <Button
-                          mode="secondary"
-                          className="topic-secondary-btn"
-                          disabled={state.isLocked || !state.isMissedByTime || progress.lives <= 0}
-                          onClick={() => applyDeadlinePenalty(topic.id)}
-                        >
-                          Пропустил 24ч окно (-1 жизнь)
-                        </Button>
-                      </div>
+                      {!testMode ? (
+                        <div className="topic-actions">
+                          <Button
+                            mode="secondary"
+                            className="topic-secondary-btn"
+                            disabled={state.isLocked || progress.lives <= 0}
+                            onClick={() => loseLifeByTask(topic.id)}
+                          >
+                            Не выполнил задание (-1 жизнь)
+                          </Button>
+                          <Button
+                            mode="secondary"
+                            className="topic-secondary-btn"
+                            disabled={state.isLocked || !state.isMissedByTime || progress.lives <= 0}
+                            onClick={() => applyDeadlinePenalty(topic.id)}
+                          >
+                            Пропустил 24ч окно (-1 жизнь)
+                          </Button>
+                        </div>
+                      ) : null}
                     </div>
                   );
                 })}
@@ -402,7 +452,7 @@ export default function App() {
               {MARATHONS.map((marathon) => {
                 const isRegistered = registeredMarathonIds.includes(marathon.id);
                 const progress = getProgress(marathon.id);
-                const isBlocked = progress.lives <= 0;
+                const isBlocked = !isTestMarathon(marathon) && progress.lives <= 0;
 
                 return (
                   <div
@@ -412,10 +462,13 @@ export default function App() {
                     <div className="topic-card-title">{marathon.title}</div>
                     <div className="topic-card-subtitle">{marathon.description}</div>
                     <div className="marathon-badges-row">
+                      {isTestMarathon(marathon) ? (
+                        <span className="status-badge status-test">Тестовый</span>
+                      ) : null}
                       <span className={`status-badge ${marathon.status === "open" ? "status-open" : "status-closed"}`}>
                         {marathon.status === "open" ? "Открытый" : "Закрытый"}
                       </span>
-                      <span className="date-badge">Старт: {formatDate(marathon.startAtIso)}</span>
+                      {!isTestMarathon(marathon) ? <span className="date-badge">Старт: {formatDate(marathon.startAtIso)}</span> : null}
                     </div>
                     <div className="topic-actions">
                       <Button
@@ -431,7 +484,7 @@ export default function App() {
                         disabled={!isRegistered || isBlocked}
                         onClick={() => setSelectedMarathonId(marathon.id)}
                       >
-                        {isBlocked ? "Жизни закончились" : "Открыть марафон"}
+                        {isTestMarathon(marathon) ? "Открыть без ограничений" : isBlocked ? "Жизни закончились" : "Открыть марафон"}
                       </Button>
                     </div>
                   </div>
