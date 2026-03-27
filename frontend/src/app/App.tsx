@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button, Div, Group, Header, Panel, PanelHeader, SimpleCell, View } from "@vkontakte/vkui";
+import "./App.css";
 
 type StoryStep = {
   id: string;
@@ -73,32 +74,38 @@ export default function App() {
 
   return (
     <View activePanel="main">
-      <Panel id="main">
-        <PanelHeader>ЗПИФ Навигатор</PanelHeader>
-        <Group header={<Header>Инвест-сторис</Header>}>
+      <Panel id="main" className="story-panel">
+        <PanelHeader className="story-topbar">ЗПИФ Навигатор</PanelHeader>
+        <Group header={<Header className="story-group-title">Инвест-сторис</Header>}>
           {!isFinished ? (
-            <Div>
-              <p style={{ opacity: 0.8, marginBottom: 12 }}>Шаг {stepIndex + 1} из {STORY_STEPS.length} · {progress}%</p>
-              <h3 style={{ marginTop: 0 }}>{currentStep.title}</h3>
-              <p style={{ marginBottom: 16 }}>{currentStep.subtitle}</p>
+            <Div className="story-card">
+              <p className="story-progress-label">Шаг {stepIndex + 1} из {STORY_STEPS.length} · {progress}%</p>
+              <div className="story-progress-track">
+                <div className="story-progress-value" style={{ width: `${progress}%` }} />
+              </div>
+
+              <h3 className="story-title">{currentStep.title}</h3>
+              <p className="story-subtitle">{currentStep.subtitle}</p>
 
               {currentStep.options?.map((option) => (
-                <div key={option} style={{ marginBottom: 8 }}>
-                  <Button stretched size="l" mode="secondary" onClick={() => handleAnswer(option)}>
+                <div key={option} className="story-option-row">
+                  <Button stretched size="l" mode="secondary" className="story-option-btn" onClick={() => handleAnswer(option)}>
                     {option}
                   </Button>
                 </div>
               ))}
             </Div>
           ) : (
-            <Div>
-              <h3 style={{ marginTop: 0 }}>Готово! Твой профиль: {getProfile(answers)}</h3>
-              <p style={{ marginBottom: 16 }}>
+            <Div className="story-card story-result-card">
+              <h3 className="story-title">Готово! Твой профиль: {getProfile(answers)}</h3>
+              <p className="story-subtitle">
                 Ты прошла быстрый квест и получила базовый профиль. Дальше можем сделать персональный мини-план.
               </p>
-              <SimpleCell subtitle="Награда">+10 XP · Бейдж «Первые шаги»</SimpleCell>
-              <div style={{ marginTop: 12 }}>
-                <Button stretched size="l" onClick={handleRestart}>
+              <SimpleCell subtitle="Награда" className="story-reward">
+                +10 XP · Бейдж «Первые шаги»
+              </SimpleCell>
+              <div className="story-option-row">
+                <Button stretched size="l" className="story-primary-btn" onClick={handleRestart}>
                   Пройти еще раз
                 </Button>
               </div>
