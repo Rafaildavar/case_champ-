@@ -1,22 +1,26 @@
 .story-panel {
   min-height: 100svh;
-  background: #f5f6f7;
+  background:
+    radial-gradient(1000px 420px at -10% -10%, rgba(171, 214, 255, 0.78), transparent 65%),
+    radial-gradient(900px 500px at 110% 0%, rgba(203, 228, 255, 0.9), transparent 70%),
+    linear-gradient(180deg, #eef6ff 0%, #e3f0ff 45%, #d7e9ff 100%);
 }
 
 .story-topbar {
-  background: #ffffff;
-  color: #1f1f1f;
+  background: rgba(11, 40, 77, 0.95);
+  color: #f3f8ff;
 }
 
 .story-group-title {
-  color: #2c2c2c;
+  color: #173d69;
 }
 
 .duo-card {
-  border: 1px solid #e6e6e6;
+  border: 1px solid rgba(45, 111, 176, 0.2);
   border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 40px rgba(18, 56, 103, 0.13);
+  backdrop-filter: blur(10px);
 }
 
 .duo-head {
@@ -31,26 +35,26 @@
   border: none;
   background: transparent;
   font-size: 26px;
-  color: #b1b1b1;
+  color: #8aa5c2;
   line-height: 1;
 }
 
 .duo-progress-track {
   height: 10px;
   border-radius: 999px;
-  background: #e8e8e8;
+  background: rgba(81, 148, 211, 0.2);
   overflow: hidden;
 }
 
 .duo-progress-value {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #70d419, #57bf00);
+  background: linear-gradient(90deg, #2f74ba 0%, #5ea6e8 100%);
 }
 
 .duo-xp {
   justify-self: end;
-  color: #d77ad9;
+  color: #6c9ecf;
   font-size: 14px;
   font-weight: 700;
 }
@@ -58,12 +62,12 @@
 .duo-title {
   margin: 0 0 8px 0;
   font-size: 24px;
-  color: #262626;
+  color: #11355b;
 }
 
 .duo-subtitle {
   margin: 0 0 14px 0;
-  color: #787878;
+  color: #33597d;
 }
 
 .duo-option-row {
@@ -74,9 +78,9 @@
   width: 100%;
   min-height: 54px;
   border-radius: 14px;
-  border: 2px solid #a9df6f;
-  background: #c8f0a5;
-  color: #3e9222;
+  border: 2px solid rgba(43, 100, 157, 0.24);
+  background: rgba(236, 246, 255, 0.97);
+  color: #11355b;
   font-size: 18px;
   font-weight: 700;
   padding: 12px;
@@ -84,25 +88,25 @@
 
 .quiz-option-selected {
   transform: translateY(-1px);
-  box-shadow: 0 5px 0 rgba(102, 175, 39, 0.35);
+  box-shadow: 0 5px 0 rgba(43, 100, 157, 0.22);
 }
 
 .quiz-option-muted {
-  border-color: #dddddd;
-  background: #f0f0f0;
-  color: #9d9d9d;
+  border-color: rgba(141, 170, 199, 0.4);
+  background: rgba(233, 242, 252, 0.6);
+  color: #87a0ba;
 }
 
 .quiz-option-correct {
-  border-color: #9ddf63;
-  background: #c6eea7;
-  color: #449f20;
+  border-color: #6fb8f0;
+  background: #d7ecff;
+  color: #1f5f99;
 }
 
 .quiz-option-wrong {
-  border-color: #efb5b5;
-  background: #f9d7d7;
-  color: #c73b3b;
+  border-color: #f0b6b6;
+  background: #fbe1e1;
+  color: #b64444;
 }
 
 .duo-footer {
@@ -118,15 +122,15 @@
 }
 
 .duo-cta-neutral {
-  background: #5ac60b;
+  background: linear-gradient(90deg, #1e67b5 0%, #4596de 100%);
 }
 
 .duo-cta-success {
-  background: #58c208;
+  background: linear-gradient(90deg, #2b74c0 0%, #5ea6e8 100%);
 }
 
 .duo-cta-danger {
-  background: #ff4f4f;
+  background: #d36a6a;
 }
 
 .duo-feedback {
@@ -147,18 +151,18 @@
 }
 
 .duo-feedback-ok {
-  background: #d3f3bd;
-  color: #2b7f10;
+  background: rgba(214, 236, 255, 0.8);
+  color: #1e598f;
 }
 
 .duo-feedback-bad {
-  background: #ffdfe2;
-  color: #bc2d36;
+  background: #f8e2e2;
+  color: #b44444;
 }
 
 .duo-feedback-placeholder {
-  background: #f1f1f1;
-  color: #7f7f7f;
+  background: rgba(221, 236, 252, 0.55);
+  color: #5f7e9e;
   font-size: 14px;
 }
 
@@ -172,5 +176,5 @@
   border-radius: 12px;
   color: #ffffff;
   font-weight: 700;
-  background: #2f7ed5;
+  background: linear-gradient(90deg, #1e67b5 0%, #4596de 100%);
 }
