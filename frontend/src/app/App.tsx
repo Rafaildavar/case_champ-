@@ -1,103 +1,161 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button, Div, Group, Header, Panel, PanelHeader, View } from "@vkontakte/vkui";
 import "./App.css";
 
-const CARD_OPTIONS = [
-  "Регулярные взносы",
-  "Оценка горизонта",
-  "Случайный импульсивный вход",
-  "Игнорировать риски",
-  "Покупка на весь капитал сразу"
+type Card = {
+  id: string;
+  title: string;
+  text?: string;
+  type: "info" | "choice";
+  options?: string[];
+};
+
+type Topic = {
+  id: string;
+  name: string;
+  description: string;
+  accentClass: string;
+  cards: Card[];
+};
+
+const TOPICS: Topic[] = [
+  {
+    id: "t1",
+    name: "Тема 1",
+    description: "Что такое ЗПИФ простыми словами",
+    accentClass: "topic-card-blue",
+    cards: [
+      {
+        id: "t1c1",
+        type: "info",
+        title: "Тема 1",
+        text: "ЗПИФ - это фонд, который объединяет деньги инвесторов и вкладывает их в активы, например в недвижимость. Ты покупаешь не квартиру целиком, а долю фонда."
+      },
+      {
+        id: "t1c2",
+        type: "choice",
+        title: "Сопоставь: что лучше для старта",
+        options: ["Регулярные маленькие шаги", "Импульсивная покупка на весь капитал", "Смотреть на горизонт 1-3 года", "Покупать из-за FOMO"]
+      }
+    ]
+  },
+  {
+    id: "t2",
+    name: "Тема 2",
+    description: "Риски и как их понимать",
+    accentClass: "topic-card-purple",
+    cards: [
+      {
+        id: "t2c1",
+        type: "info",
+        title: "Тема 2",
+        text: "Риск - это не плохо. Это просто вероятность, что результат будет отличаться от ожиданий. Важно, чтобы риск соответствовал твоей цели и сроку."
+      }
+    ]
+  },
+  {
+    id: "t3",
+    name: "Тема 3",
+    description: "Доходность и горизонт",
+    accentClass: "topic-card-cyan",
+    cards: [
+      {
+        id: "t3c1",
+        type: "info",
+        title: "Тема 3",
+        text: "Чем длиннее горизонт, тем выше шанс спокойно переживать колебания рынка. Регулярность часто важнее попыток угадать лучший момент входа."
+      }
+    ]
+  }
 ];
-const CORRECT_OPTIONS = new Set(["Регулярные взносы", "Оценка горизонта"]);
 
 export default function App() {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [submitted, setSubmitted] = useState(false);
+  const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  const isPerfect = useMemo(() => {
-    if (selected.length !== CORRECT_OPTIONS.size) return false;
-    return selected.every((item) => CORRECT_OPTIONS.has(item));
-  }, [selected]);
+  const activeTopic = TOPICS.find((topic) => topic.id === activeTopicId) ?? null;
+  const activeCard = activeTopic ? activeTopic.cards[activeCardIndex] : null;
+
+  function openTopic(topicId: string) {
+    setActiveTopicId(topicId);
+    setActiveCardIndex(0);
+    setSelectedOptions([]);
+  }
+
+  function backToTopics() {
+    setActiveTopicId(null);
+    setActiveCardIndex(0);
+    setSelectedOptions([]);
+  }
+
+  function nextCard() {
+    if (!activeTopic) return;
+    if (activeCardIndex < activeTopic.cards.length - 1) {
+      setActiveCardIndex((prev) => prev + 1);
+      setSelectedOptions([]);
+      return;
+    }
+    backToTopics();
+  }
 
   function toggleOption(option: string) {
-    if (submitted) return;
-    setSelected((prev) => (prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]));
-  }
-
-  function resetCard() {
-    setSelected([]);
-    setSubmitted(false);
-  }
-
-  function getOptionClass(option: string): string {
-    if (!submitted) return "quiz-option";
-    if (CORRECT_OPTIONS.has(option)) return "quiz-option quiz-option-correct";
-    if (selected.includes(option) && !CORRECT_OPTIONS.has(option)) return "quiz-option quiz-option-wrong";
-    return "quiz-option quiz-option-muted";
+    setSelectedOptions((prev) => (prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]));
   }
 
   return (
     <View activePanel="main">
       <Panel id="main" className="story-panel">
-        <PanelHeader className="story-topbar">ЗПИФ Навигатор</PanelHeader>
-        <Group header={<Header className="story-group-title">Карточка дня</Header>}>
-          <Div className="duo-card">
-            <div className="duo-head">
-              <button className="duo-close" type="button" aria-label="Закрыть">
-                ×
-              </button>
-              <div className="duo-progress-track">
-                <div className="duo-progress-value" style={{ width: "60%" }} />
-              </div>
-              <div className="duo-xp">20</div>
-            </div>
+        <PanelHeader className="story-topbar">{activeTopic ? activeTopic.name : "ЗПИФ Навигатор"}</PanelHeader>
 
-            <h3 className="duo-title">Выбери 2 действия, которые подходят новичку</h3>
-            <p className="duo-subtitle">Формат как в Duolingo: быстрый выбор и понятная обратная связь.</p>
-
-            {CARD_OPTIONS.map((option) => (
-              <div key={option} className="duo-option-row">
-                <button type="button" className={`${getOptionClass(option)} ${selected.includes(option) ? "quiz-option-selected" : ""}`} onClick={() => toggleOption(option)}>
-                  {option}
+        {!activeTopic ? (
+          <Group header={<Header className="story-group-title">Выбери тему</Header>}>
+            <Div className="topic-list">
+              {TOPICS.map((topic) => (
+                <button key={topic.id} type="button" className={`topic-card ${topic.accentClass}`} onClick={() => openTopic(topic.id)}>
+                  <div className="topic-card-title">{topic.name}</div>
+                  <div className="topic-card-subtitle">{topic.description}</div>
                 </button>
+              ))}
+            </Div>
+          </Group>
+        ) : (
+          <Group header={<Header className="story-group-title">Карточки темы</Header>}>
+            <Div className="topic-content-card">
+              <div className="topic-content-meta">
+                Карточка {activeCardIndex + 1} из {activeTopic.cards.length}
               </div>
-            ))}
 
-            <div className="duo-footer">
-              {!submitted ? (
-                <Button stretched size="l" className="duo-cta duo-cta-neutral" disabled={selected.length === 0} onClick={() => setSubmitted(true)}>
-                  Проверить
-                </Button>
+              <h3 className="topic-content-title">{activeCard?.title}</h3>
+
+              {activeCard?.type === "info" ? (
+                <p className="topic-content-text">{activeCard.text}</p>
               ) : (
-                <Button stretched size="l" className={`duo-cta ${isPerfect ? "duo-cta-success" : "duo-cta-danger"}`} onClick={resetCard}>
-                  {isPerfect ? "Продолжить" : "Понятно"}
-                </Button>
-              )}
-            </div>
-
-            {submitted ? (
-              <div className={`duo-feedback ${isPerfect ? "duo-feedback-ok" : "duo-feedback-bad"}`}>
-                <div className="duo-feedback-title">{isPerfect ? "Отлично!" : "Продолжай практиковаться"}</div>
-                <div className="duo-feedback-text">
-                  {isPerfect
-                    ? "Ты выбрала правильную базовую стратегию для старта."
-                    : "Верные варианты: регулярные взносы и оценка горизонта."}
+                <div className="topic-match-grid">
+                  {activeCard?.options?.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      className={`topic-match-pill ${selectedOptions.includes(option) ? "topic-match-pill-active" : ""}`}
+                      onClick={() => toggleOption(option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
                 </div>
-              </div>
-            ) : (
-              <div className="duo-feedback duo-feedback-placeholder">
-                Отметь варианты и нажми «Проверить».
-              </div>
-            )}
+              )}
 
-            <div className="story-footer-row">
-              <Button stretched size="l" className="story-primary-btn">
-                Следующая карточка в ленте
-              </Button>
-            </div>
-          </Div>
-        </Group>
+              <div className="topic-actions">
+                <Button mode="secondary" className="topic-secondary-btn" onClick={backToTopics}>
+                  К темам
+                </Button>
+                <Button className="topic-primary-btn" onClick={nextCard}>
+                  {activeCardIndex < activeTopic.cards.length - 1 ? "Далее" : "Завершить"}
+                </Button>
+              </div>
+            </Div>
+          </Group>
+        )}
       </Panel>
     </View>
   );
