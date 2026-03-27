@@ -1,130 +1,168 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import bridge from "@vkontakte/vk-bridge";
 import { Button, Div, Group, Header, Panel, PanelHeader, View } from "@vkontakte/vkui";
 import "./App.css";
 
-type Card = {
+type TabId = "marathons" | "profile";
+
+type MarathonTopic = {
   id: string;
   title: string;
-  text?: string;
-  type: "info" | "choice" | "calc";
-  options?: string[];
-  helperText?: string;
 };
 
-type Topic = {
+type Marathon = {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  accentClass: string;
-  cards: Card[];
+  status: "open" | "closed";
+  startAtIso: string;
+  topics: MarathonTopic[];
 };
 
-const TOPICS: Topic[] = [
+const MARATHONS: Marathon[] = [
   {
-    id: "t1",
-    name: "Тема 1",
-    description: "Что такое ЗПИФ простыми словами",
-    accentClass: "topic-card-blue",
-    cards: [
-      {
-        id: "t1c1",
-        type: "info",
-        title: "Тема 1",
-        text: "ЗПИФ - это фонд, который объединяет деньги инвесторов и вкладывает их в активы, например в недвижимость. Ты покупаешь не квартиру целиком, а долю фонда."
-      },
-      {
-        id: "t1c2",
-        type: "choice",
-        title: "Сопоставь: что подходит новичку",
-        helperText: "Выбери 2 правильных варианта.",
-        options: ["Регулярные маленькие шаги", "Импульсивная покупка на весь капитал", "Смотреть на горизонт 1-3 года", "Покупать из-за FOMO"]
-      },
-      {
-        id: "t1c3",
-        type: "calc",
-        title: "Мини-калькулятор доходности",
-        helperText: "Выбери сумму и период, мы покажем примерный результат."
-      }
+    id: "m1",
+    title: "Марафон: Старт в ЗПИФ",
+    description: "Для новичков. База + практика + мини-квиз.",
+    status: "open",
+    startAtIso: "2026-03-28T10:00:00.000Z",
+    topics: [
+      { id: "m1t1", title: "Тема 1. Что такое ЗПИФ" },
+      { id: "m1t2", title: "Тема 2. Риски и горизонт" },
+      { id: "m1t3", title: "Тема 3. Доходность и дисциплина" },
+      { id: "m1t4", title: "Тема 4. Мини-стратегия" },
+      { id: "m1t5", title: "Тема 5. Финальный кейс" }
     ]
   },
   {
-    id: "t2",
-    name: "Тема 2",
-    description: "Риски и как их понимать",
-    accentClass: "topic-card-purple",
-    cards: [
-      {
-        id: "t2c1",
-        type: "info",
-        title: "Тема 2",
-        text: "Риск - это не плохо. Это просто вероятность, что результат будет отличаться от ожиданий. Важно, чтобы риск соответствовал твоей цели и сроку."
-      }
-    ]
-  },
-  {
-    id: "t3",
-    name: "Тема 3",
-    description: "Доходность и горизонт",
-    accentClass: "topic-card-cyan",
-    cards: [
-      {
-        id: "t3c1",
-        type: "info",
-        title: "Тема 3",
-        text: "Чем длиннее горизонт, тем выше шанс спокойно переживать колебания рынка. Регулярность часто важнее попыток угадать лучший момент входа."
-      }
+    id: "m2",
+    title: "Марафон: Продвинутый трек",
+    description: "Откроется позже. Для тех, кто прошел базовый поток.",
+    status: "closed",
+    startAtIso: "2026-04-15T10:00:00.000Z",
+    topics: [
+      { id: "m2t1", title: "Тема 1. Анализ фонда" },
+      { id: "m2t2", title: "Тема 2. Ошибки новичка" },
+      { id: "m2t3", title: "Тема 3. Сборка портфеля" }
     ]
   }
 ];
+
+type MarathonProgress = {
+  lives: number;
+  completedTopicIds: string[];
+  testFailedTopicIds: string[];
+  taskFailedTopicIds: string[];
+  windowMissedTopicIds: string[];
+};
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
 
 export default function App() {
   const [vkReady, setVkReady] = useState(false);
   const [vkError, setVkError] = useState<string | null>(null);
   const [vkUserName, setVkUserName] = useState<string>("");
-  const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [calcAmount, setCalcAmount] = useState(50000);
-  const [calcYears, setCalcYears] = useState(3);
+  const [activeTab, setActiveTab] = useState<TabId>("marathons");
+  const [selectedMarathonId, setSelectedMarathonId] = useState<string | null>(null);
+  const [registeredMarathonIds, setRegisteredMarathonIds] = useState<string[]>([]);
+  const [progressByMarathon, setProgressByMarathon] = useState<Record<string, MarathonProgress>>({});
 
-  const activeTopic = TOPICS.find((topic) => topic.id === activeTopicId) ?? null;
-  const activeCard = activeTopic ? activeTopic.cards[activeCardIndex] : null;
+  const selectedMarathon = MARATHONS.find((m) => m.id === selectedMarathonId) ?? null;
 
-  function openTopic(topicId: string) {
-    setActiveTopicId(topicId);
-    setActiveCardIndex(0);
-    setSelectedOptions([]);
-    setCalcAmount(50000);
-    setCalcYears(3);
+  const registeredMarathons = useMemo(
+    () => MARATHONS.filter((m) => registeredMarathonIds.includes(m.id)),
+    [registeredMarathonIds]
+  );
+
+  function getProgress(marathonId: string): MarathonProgress {
+    return (
+      progressByMarathon[marathonId] ?? {
+        lives: 3,
+        completedTopicIds: [],
+        testFailedTopicIds: [],
+        taskFailedTopicIds: [],
+        windowMissedTopicIds: []
+      }
+    );
   }
 
-  function backToTopics() {
-    setActiveTopicId(null);
-    setActiveCardIndex(0);
-    setSelectedOptions([]);
-    setCalcAmount(50000);
-    setCalcYears(3);
+  function registerToMarathon(marathonId: string) {
+    setRegisteredMarathonIds((prev) => (prev.includes(marathonId) ? prev : [...prev, marathonId]));
+    setProgressByMarathon((prev) => ({ ...prev, [marathonId]: getProgress(marathonId) }));
   }
 
-  function nextCard() {
-    if (!activeTopic) return;
-    if (activeCardIndex < activeTopic.cards.length - 1) {
-      setActiveCardIndex((prev) => prev + 1);
-      setSelectedOptions([]);
-      setCalcAmount(50000);
-      setCalcYears(3);
-      return;
-    }
-    backToTopics();
+  function updateProgress(marathonId: string, updater: (current: MarathonProgress) => MarathonProgress) {
+    setProgressByMarathon((prev) => {
+      const current = prev[marathonId] ?? getProgress(marathonId);
+      return { ...prev, [marathonId]: updater(current) };
+    });
   }
 
-  function toggleOption(option: string) {
-    setSelectedOptions((prev) => (prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]));
+  function completeTopic(topicId: string) {
+    if (!selectedMarathon) return;
+    updateProgress(selectedMarathon.id, (current) => {
+      if (current.completedTopicIds.includes(topicId)) return current;
+      return { ...current, completedTopicIds: [...current.completedTopicIds, topicId] };
+    });
   }
 
-  const estimatedResult = Math.round(calcAmount * Math.pow(1.12, calcYears));
-  const estimatedProfit = estimatedResult - calcAmount;
+  function loseLifeByTest(topicId: string) {
+    if (!selectedMarathon) return;
+    updateProgress(selectedMarathon.id, (current) => {
+      if (current.testFailedTopicIds.includes(topicId) || current.lives <= 0) return current;
+      return {
+        ...current,
+        lives: Math.max(0, current.lives - 1),
+        testFailedTopicIds: [...current.testFailedTopicIds, topicId]
+      };
+    });
+  }
+
+  function loseLifeByTask(topicId: string) {
+    if (!selectedMarathon) return;
+    updateProgress(selectedMarathon.id, (current) => {
+      if (current.taskFailedTopicIds.includes(topicId) || current.lives <= 0) return current;
+      return {
+        ...current,
+        lives: Math.max(0, current.lives - 1),
+        taskFailedTopicIds: [...current.taskFailedTopicIds, topicId]
+      };
+    });
+  }
+
+  function applyDeadlinePenalty(topicId: string) {
+    if (!selectedMarathon) return;
+    updateProgress(selectedMarathon.id, (current) => {
+      if (current.windowMissedTopicIds.includes(topicId) || current.lives <= 0) return current;
+      return {
+        ...current,
+        lives: Math.max(0, current.lives - 1),
+        windowMissedTopicIds: [...current.windowMissedTopicIds, topicId]
+      };
+    });
+  }
+
+  function getTopicState(marathon: Marathon, topicIndex: number, progress: MarathonProgress) {
+    const topic = marathon.topics[topicIndex];
+    const now = Date.now();
+    const startMs = new Date(marathon.startAtIso).getTime();
+    const unlockMs = startMs + topicIndex * 24 * 60 * 60 * 1000;
+    const windowEndsMs = unlockMs + 24 * 60 * 60 * 1000;
+    const isCompleted = progress.completedTopicIds.includes(topic.id);
+    const previousCompleted = topicIndex === 0 || progress.completedTopicIds.includes(marathon.topics[topicIndex - 1].id);
+    const openedByTime = now >= unlockMs;
+    const isLocked = !openedByTime || !previousCompleted || progress.lives <= 0;
+    const isMissedByTime = !isCompleted && now > windowEndsMs;
+    return { isLocked, isCompleted, isMissedByTime, unlockMs, windowEndsMs };
+  }
 
   async function initVk() {
     try {
@@ -171,100 +209,156 @@ export default function App() {
   return (
     <View activePanel="main">
       <Panel id="main" className="story-panel">
-        <PanelHeader className="story-topbar">{activeTopic ? activeTopic.name : "ЗПИФ Навигатор"}</PanelHeader>
+        <PanelHeader className="story-topbar">{selectedMarathon ? selectedMarathon.title : "ЗПИФ Навигатор"}</PanelHeader>
+        <Group>
+          <Div className="vk-user-chip">VK: {vkUserName}</Div>
+        </Group>
 
-        {!activeTopic ? (
-          <>
-            <Group>
-              <Div className="vk-user-chip">VK: {vkUserName}</Div>
-            </Group>
-            <Group header={<Header className="story-group-title">Выбери тему</Header>}>
-              <Div className="topic-list">
-                {TOPICS.map((topic) => (
-                  <button key={topic.id} type="button" className={`topic-card ${topic.accentClass}`} onClick={() => openTopic(topic.id)}>
-                    <div className="topic-card-title">{topic.name}</div>
-                    <div className="topic-card-subtitle">{topic.description}</div>
-                  </button>
-                ))}
-              </Div>
-            </Group>
-          </>
-        ) : (
-          <Group header={<Header className="story-group-title">Карточки темы</Header>}>
+        <Group>
+          <Div className="tabs-row">
+            <button type="button" className={`tab-pill ${activeTab === "marathons" ? "tab-pill-active" : ""}`} onClick={() => setActiveTab("marathons")}>
+              Марафоны
+            </button>
+            <button type="button" className={`tab-pill ${activeTab === "profile" ? "tab-pill-active" : ""}`} onClick={() => setActiveTab("profile")}>
+              Профиль
+            </button>
+          </Div>
+        </Group>
+
+        {activeTab === "profile" ? (
+          <Group header={<Header className="story-group-title">Личный кабинет</Header>}>
             <Div className="topic-content-card">
-              <div className="topic-content-meta">
-                Карточка {activeCardIndex + 1} из {activeTopic.cards.length}
-              </div>
+              <div className="topic-content-title">Профиль</div>
+              <p className="topic-content-text">Пользователь: {vkUserName}</p>
+              <p className="topic-content-text">Зарегистрировано марафонов: {registeredMarathons.length}</p>
 
-              <h3 className="topic-content-title">{activeCard?.title}</h3>
-              {activeCard?.helperText ? <p className="topic-content-helper">{activeCard.helperText}</p> : null}
-
-              {activeCard?.type === "info" ? (
-                <p className="topic-content-text">{activeCard.text}</p>
-              ) : activeCard?.type === "choice" ? (
-                <div className="topic-match-grid">
-                  {activeCard?.options?.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      className={`topic-match-pill ${selectedOptions.includes(option) ? "topic-match-pill-active" : ""}`}
-                      onClick={() => toggleOption(option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
+              {registeredMarathons.length === 0 ? (
+                <p className="topic-content-helper">Пока нет активных регистраций. Перейди во вкладку «Марафоны».</p>
               ) : (
-                <div className="calc-wrap">
-                  <div className="calc-block">
-                    <div className="calc-label">Сумма вложения</div>
-                    <div className="calc-chip-row">
-                      {[10000, 50000, 100000].map((amount) => (
-                        <button
-                          key={amount}
-                          type="button"
-                          className={`calc-chip ${calcAmount === amount ? "calc-chip-active" : ""}`}
-                          onClick={() => setCalcAmount(amount)}
-                        >
-                          {amount.toLocaleString("ru-RU")} ₽
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="calc-block">
-                    <div className="calc-label">Период</div>
-                    <div className="calc-chip-row">
-                      {[1, 3, 5].map((years) => (
-                        <button
-                          key={years}
-                          type="button"
-                          className={`calc-chip ${calcYears === years ? "calc-chip-active" : ""}`}
-                          onClick={() => setCalcYears(years)}
-                        >
-                          {years} {years === 1 ? "год" : years < 5 ? "года" : "лет"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="calc-result">
-                    <div className="calc-result-line">Было вложено: {calcAmount.toLocaleString("ru-RU")} ₽</div>
-                    <div className="calc-result-line">Примерный итог: {estimatedResult.toLocaleString("ru-RU")} ₽</div>
-                    <div className="calc-result-profit">Потенциальная разница: +{estimatedProfit.toLocaleString("ru-RU")} ₽</div>
-                    <div className="calc-note">Примерный расчет, не инвестиционная рекомендация.</div>
-                  </div>
+                <div className="profile-list">
+                  {registeredMarathons.map((marathon) => {
+                    const progress = getProgress(marathon.id);
+                    return (
+                      <div key={marathon.id} className="profile-item">
+                        <div className="profile-item-title">{marathon.title}</div>
+                        <div className="profile-item-sub">
+                          Жизни: {progress.lives}/3 · Пройдено тем: {progress.completedTopicIds.length}/{marathon.topics.length}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
+            </Div>
+          </Group>
+        ) : selectedMarathon ? (
+          <Group header={<Header className="story-group-title">{selectedMarathon.title}</Header>}>
+            <Div className="topic-content-card">
+              <p className="topic-content-helper">
+                Новая тема открывается каждые 24 часа и только после прохождения предыдущей. Всего 3 жизни.
+              </p>
+              <p className="topic-content-text">Дата старта: {formatDate(selectedMarathon.startAtIso)}</p>
+
+              <div className="topic-list">
+                {selectedMarathon.topics.map((topic, index) => {
+                  const progress = getProgress(selectedMarathon.id);
+                  const state = getTopicState(selectedMarathon, index, progress);
+
+                  return (
+                    <div key={topic.id} className="marathon-topic-item">
+                      <div className="marathon-topic-title">{topic.title}</div>
+                      <div className="marathon-topic-sub">
+                        {state.isCompleted
+                          ? "Статус: пройдено"
+                          : state.isLocked
+                            ? "Статус: закрыто"
+                            : "Статус: доступно"}
+                      </div>
+                      <div className="marathon-topic-sub">Откроется: {new Date(state.unlockMs).toLocaleString("ru-RU")}</div>
+                      <div className="marathon-topic-sub">Окно прохождения: до {new Date(state.windowEndsMs).toLocaleString("ru-RU")}</div>
+
+                      <div className="topic-actions">
+                        <Button className="topic-primary-btn" disabled={state.isLocked || state.isCompleted} onClick={() => completeTopic(topic.id)}>
+                          Пройти тему
+                        </Button>
+                        <Button
+                          mode="secondary"
+                          className="topic-secondary-btn"
+                          disabled={state.isLocked || progress.lives <= 0}
+                          onClick={() => loseLifeByTest(topic.id)}
+                        >
+                          Не прошел тест (-1 жизнь)
+                        </Button>
+                      </div>
+
+                      <div className="topic-actions">
+                        <Button
+                          mode="secondary"
+                          className="topic-secondary-btn"
+                          disabled={state.isLocked || progress.lives <= 0}
+                          onClick={() => loseLifeByTask(topic.id)}
+                        >
+                          Не выполнил задание (-1 жизнь)
+                        </Button>
+                        <Button
+                          mode="secondary"
+                          className="topic-secondary-btn"
+                          disabled={state.isLocked || !state.isMissedByTime || progress.lives <= 0}
+                          onClick={() => applyDeadlinePenalty(topic.id)}
+                        >
+                          Пропустил 24ч окно (-1 жизнь)
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
               <div className="topic-actions">
-                <Button mode="secondary" className="topic-secondary-btn" onClick={backToTopics}>
-                  К темам
-                </Button>
-                <Button className="topic-primary-btn" onClick={nextCard}>
-                  {activeCardIndex < activeTopic.cards.length - 1 ? "Далее" : "Завершить"}
+                <Button mode="secondary" className="topic-secondary-btn" onClick={() => setSelectedMarathonId(null)}>
+                  Назад к списку марафонов
                 </Button>
               </div>
+            </Div>
+          </Group>
+        ) : (
+          <Group header={<Header className="story-group-title">Доступные марафоны</Header>}>
+            <Div className="topic-list">
+              {MARATHONS.map((marathon) => {
+                const isRegistered = registeredMarathonIds.includes(marathon.id);
+                const progress = getProgress(marathon.id);
+                const isBlocked = progress.lives <= 0;
+
+                return (
+                  <div key={marathon.id} className="topic-card topic-card-blue">
+                    <div className="topic-card-title">{marathon.title}</div>
+                    <div className="topic-card-subtitle">{marathon.description}</div>
+                    <div className="marathon-badges-row">
+                      <span className={`status-badge ${marathon.status === "open" ? "status-open" : "status-closed"}`}>
+                        {marathon.status === "open" ? "Открытый" : "Закрытый"}
+                      </span>
+                      <span className="date-badge">Старт: {formatDate(marathon.startAtIso)}</span>
+                    </div>
+                    <div className="topic-actions">
+                      <Button
+                        className="topic-primary-btn"
+                        disabled={marathon.status !== "open" || isRegistered}
+                        onClick={() => registerToMarathon(marathon.id)}
+                      >
+                        {isRegistered ? "Ты зарегистрирована" : "Записаться"}
+                      </Button>
+                      <Button
+                        mode="secondary"
+                        className="topic-secondary-btn"
+                        disabled={!isRegistered || isBlocked}
+                        onClick={() => setSelectedMarathonId(marathon.id)}
+                      >
+                        {isBlocked ? "Жизни закончились" : "Открыть марафон"}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </Div>
           </Group>
         )}
