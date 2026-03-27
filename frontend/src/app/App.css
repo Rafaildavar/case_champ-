@@ -1,13 +1,13 @@
 .story-panel {
   min-height: 100svh;
   background:
-    radial-gradient(1200px 420px at -10% -10%, rgba(177, 212, 246, 0.75), transparent 65%),
-    radial-gradient(900px 500px at 100% 0%, rgba(213, 233, 251, 0.9), transparent 70%),
-    linear-gradient(180deg, #f2f8ff 0%, #e7f2fd 45%, #dcecff 100%);
+    radial-gradient(1000px 420px at -10% -10%, rgba(171, 214, 255, 0.78), transparent 65%),
+    radial-gradient(900px 500px at 110% 0%, rgba(203, 228, 255, 0.9), transparent 70%),
+    linear-gradient(180deg, #eef6ff 0%, #e3f0ff 45%, #d7e9ff 100%);
 }
 
 .story-topbar {
-  background: rgba(15, 46, 84, 0.9);
+  background: rgba(11, 40, 77, 0.95);
   color: #f3f8ff;
 }
 
@@ -16,31 +16,34 @@
 }
 
 .story-card {
-  border: 1px solid rgba(45, 111, 176, 0.25);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 14px 30px rgba(22, 70, 122, 0.12);
+  border: 1px solid rgba(45, 111, 176, 0.2);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 40px rgba(18, 56, 103, 0.13);
+  backdrop-filter: blur(10px);
 }
 
-.story-progress-label {
-  margin: 0 0 10px 0;
-  color: #335f8c;
-  font-size: 14px;
-}
-
-.story-progress-track {
-  width: 100%;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(81, 148, 211, 0.2);
+.story-chip-row {
+  display: flex;
+  gap: 8px;
   margin-bottom: 14px;
-  overflow: hidden;
 }
 
-.story-progress-value {
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #2f74ba 0%, #5ea6e8 100%);
+.story-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #174f87;
+  background: rgba(211, 233, 255, 0.95);
+}
+
+.story-chip-ghost {
+  color: #205f26;
+  background: rgba(214, 248, 215, 0.92);
 }
 
 .story-title {
@@ -60,27 +63,50 @@
 }
 
 .story-option-btn {
-  border: 1px solid rgba(43, 100, 157, 0.3);
-  background: rgba(228, 241, 255, 0.95);
+  border: 1px solid rgba(43, 100, 157, 0.24);
+  background: rgba(236, 246, 255, 0.97);
   color: #11355b;
+  border-radius: 16px;
+  min-height: 50px;
+  font-weight: 600;
 }
 
 .story-option-btn:hover {
   background: #d8ecff;
 }
 
-.story-result-card {
-  border-color: rgba(26, 93, 149, 0.35);
+.story-option-btn-active {
+  border-color: rgba(26, 91, 150, 0.65);
+  background: rgba(199, 228, 255, 1);
 }
 
-.story-reward {
-  background: rgba(214, 236, 255, 0.7);
-  border-radius: 12px;
-  margin-bottom: 12px;
+.story-feedback {
+  margin-top: 12px;
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.story-feedback-ok {
+  background: rgba(211, 245, 219, 0.95);
+  color: #184f27;
+}
+
+.story-feedback-warn {
+  background: rgba(255, 235, 208, 0.95);
+  color: #714712;
+}
+
+.story-footer-row {
+  margin-top: 14px;
 }
 
 .story-primary-btn {
-  background: linear-gradient(90deg, #1f67b2 0%, #4d95d8 100%);
+  background: linear-gradient(90deg, #1e67b5 0%, #4596de 100%);
   color: #ffffff;
   border: none;
+  border-radius: 16px;
+  min-height: 50px;
+  font-weight: 700;
 }
