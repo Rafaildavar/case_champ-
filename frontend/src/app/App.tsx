@@ -1,6 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import bridge from "@vkontakte/vk-bridge";
-import { Button, Div, Group, Header, Panel, PanelHeader, View } from "@vkontakte/vkui";
+import { Button, Div, Group, Header, Input, Panel, PanelHeader, Textarea, View } from "@vkontakte/vkui";
+import { apiClient, type ApiMarathon } from "../api/client";
+import {
+  defaultIntensiveState,
+  getIntensiveStatusLabel,
+  IntensiveMarathonFlow,
+  INTENSIVE_MVP_MARATHON_ID,
+  isIntensiveMvpMarathon,
+  type IntensiveMarathonState
+} from "./IntensiveMarathonFlow";
 import "./App.css";
 
 type TabId = "marathons" | "profile";
@@ -33,10 +42,32 @@ type Marathon = {
   status: "open" | "closed";
   mode?: "regular" | "test";
   startAtIso: string;
+  /** Часов между открытием соседних тем (по умолчанию 24). */
+  unlockIntervalHours?: number;
+  /** Часов на прохождение темы после открытия (по умолчанию 24). */
+  topicWindowHours?: number;
   topics: MarathonTopic[];
 };
 
-const MARATHONS: Marathon[] = [
+function normalizeMarathonFromApi(raw: ApiMarathon): Marathon {
+  return {
+    id: raw.id,
+    title: raw.title,
+    description: raw.description,
+    status: raw.status,
+    mode: raw.mode,
+    startAtIso: raw.start_at_iso,
+    unlockIntervalHours: raw.unlock_interval_hours,
+    topicWindowHours: raw.topic_window_hours,
+    topics: raw.topics.map((t) => ({
+      id: t.id,
+      title: t.title,
+      taskTypes: t.task_types ?? undefined
+    }))
+  };
+}
+
+const FALLBACK_MARATHONS: Marathon[] = [
   {
     id: "m1",
     title: "Марафон: Старт в ЗПИФ",
@@ -83,6 +114,23 @@ const MARATHONS: Marathon[] = [
         title: "Тема 2. Практический блок",
         taskTypes: ["video", "test", "practice", "matching", "calculator"]
       }
+    ]
+  },
+  {
+    id: INTENSIVE_MVP_MARATHON_ID,
+    title: "MVP: один день марафона",
+    description:
+      "Интенсив ЗПИФ: 4 этапа за день, жизни и тест 65%, награда и клуб на финише. Запишись и открой — демо без привязки к календарю потока.",
+    status: "open",
+    mode: "regular",
+    startAtIso: "2026-03-28T06:00:00.000Z",
+    unlockIntervalHours: 2,
+    topicWindowHours: 8,
+    topics: [
+      { id: "m-one-day-t1", title: "День 1 · Утро: что такое ЗПИФ" },
+      { id: "m-one-day-t2", title: "День 1 · День: риски и горизонт" },
+      { id: "m-one-day-t3", title: "День 1 · Вечер: дисциплина и план" },
+      { id: "m-one-day-t4", title: "День 1 · Финиш: мини-кейс" }
     ]
   }
 ];
@@ -313,11 +361,81 @@ export default function App() {
   const [showTaskSuccess, setShowTaskSuccess] = useState(false);
   const [videoHomeworkChoice, setVideoHomeworkChoice] = useState<string | null>(null);
 
-  const selectedMarathon = MARATHONS.find((m) => m.id === selectedMarathonId) ?? null;
+  const [remoteMarathons, setRemoteMarathons] = useState<Marathon[] | null>(null);
+  const [marathonsLoadError, setMarathonsLoadError] = useState<string | null>(null);
+  const [createTitle, setCreateTitle] = useState("");
+  const [createDescription, setCreateDescription] = useState("");
+  const [createTopicsText, setCreateTopicsText] = useState("Тема 1\nТема 2\nТема 3");
+  const [createStartLocal, setCreateStartLocal] = useState(() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  });
+  const [createUnlockHours, setCreateUnlockHours] = useState("2");
+  const [createWindowHours, setCreateWindowHours] = useState("8");
+  const [createBusy, setCreateBusy] = useState(false);
+  const [createMessage, setCreateMessage] = useState<string | null>(null);
+  const [intensiveByMarathon, setIntensiveByMarathon] = useState<Record<string, IntensiveMarathonState>>({});
+
+  const loadMarathons = useCallback(async () => {
+    try {
+      const raw = await apiClient.listMarathons();
+      setRemoteMarathons(raw.map(normalizeMarathonFromApi));
+      setMarathonsLoadError(null);
+    } catch {
+      setRemoteMarathons(null);
+      setMarathonsLoadError("Не удалось загрузить марафоны с сервера — показаны только локальные.");
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMarathons();
+  }, [loadMarathons]);
+
+  async function submitCreateMarathon() {
+    const titles = createTopicsText
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!createTitle.trim() || titles.length === 0) {
+      setCreateMessage("Укажи название и хотя бы одну тему (каждая с новой строки).");
+      return;
+    }
+    setCreateBusy(true);
+    setCreateMessage(null);
+    try {
+      const startIso = new Date(createStartLocal).toISOString();
+      await apiClient.createMarathon({
+        title: createTitle.trim(),
+        description: createDescription.trim(),
+        start_at_iso: startIso,
+        topic_titles: titles,
+        unlock_interval_hours: Math.max(0.25, Number(createUnlockHours) || 2),
+        topic_window_hours: Math.max(0.25, Number(createWindowHours) || 8),
+        status: "open",
+        mode: "regular"
+      });
+      setCreateMessage("Марафон создан и появился в списке.");
+      await loadMarathons();
+    } catch {
+      setCreateMessage("Не удалось создать: проверь, что API запущен и VITE_API_URL верный.");
+    } finally {
+      setCreateBusy(false);
+    }
+  }
+
+  const marathons = useMemo(() => {
+    const map = new Map<string, Marathon>();
+    for (const m of FALLBACK_MARATHONS) map.set(m.id, m);
+    if (remoteMarathons) for (const m of remoteMarathons) map.set(m.id, m);
+    return Array.from(map.values());
+  }, [remoteMarathons]);
+
+  const selectedMarathon = marathons.find((m) => m.id === selectedMarathonId) ?? null;
 
   const registeredMarathons = useMemo(
-    () => MARATHONS.filter((m) => registeredMarathonIds.includes(m.id)),
-    [registeredMarathonIds]
+    () => marathons.filter((m) => registeredMarathonIds.includes(m.id)),
+    [marathons, registeredMarathonIds]
   );
   const totalCompletedTopics = useMemo(
     () =>
@@ -416,6 +534,30 @@ export default function App() {
   function registerToMarathon(marathonId: string) {
     setRegisteredMarathonIds((prev) => (prev.includes(marathonId) ? prev : [...prev, marathonId]));
     setProgressByMarathon((prev) => ({ ...prev, [marathonId]: getProgress(marathonId) }));
+    if (marathonId === INTENSIVE_MVP_MARATHON_ID) {
+      setIntensiveByMarathon((prev) => (prev[marathonId] ? prev : { ...prev, [marathonId]: defaultIntensiveState() }));
+    }
+  }
+
+  function mergeIntensiveState(marathonId: string, fn: (s: IntensiveMarathonState) => IntensiveMarathonState) {
+    setIntensiveByMarathon((prev) => {
+      const cur = prev[marathonId] ?? defaultIntensiveState();
+      return { ...prev, [marathonId]: fn(cur) };
+    });
+  }
+
+  function resetIntensiveMarathonAttempt(marathonId: string) {
+    setProgressByMarathon((prev) => ({
+      ...prev,
+      [marathonId]: {
+        lives: 3,
+        completedTopicIds: [],
+        testFailedTopicIds: [],
+        taskFailedTopicIds: [],
+        windowMissedTopicIds: []
+      }
+    }));
+    setIntensiveByMarathon((prev) => ({ ...prev, [marathonId]: defaultIntensiveState() }));
   }
 
   function updateProgress(marathonId: string, updater: (current: MarathonProgress) => MarathonProgress) {
@@ -484,8 +626,12 @@ export default function App() {
 
     const now = Date.now();
     const startMs = new Date(marathon.startAtIso).getTime();
-    const unlockMs = startMs + topicIndex * 24 * 60 * 60 * 1000;
-    const windowEndsMs = unlockMs + 24 * 60 * 60 * 1000;
+    const intervalH = marathon.unlockIntervalHours ?? 24;
+    const windowH = marathon.topicWindowHours ?? 24;
+    const intervalMs = intervalH * 60 * 60 * 1000;
+    const windowMs = windowH * 60 * 60 * 1000;
+    const unlockMs = startMs + topicIndex * intervalMs;
+    const windowEndsMs = unlockMs + windowMs;
     const isCompleted = progress.completedTopicIds.includes(topic.id);
     const previousCompleted = topicIndex === 0 || progress.completedTopicIds.includes(marathon.topics[topicIndex - 1].id);
     const openedByTime = now >= unlockMs;
@@ -634,6 +780,16 @@ export default function App() {
                         <div className="profile-progress-sub">
                           Пройдено: {progress.completedTopicIds.length}/{marathon.topics.length} · Жизни: {progress.lives}/3
                         </div>
+                        {isIntensiveMvpMarathon(marathon) ? (
+                          <div className="profile-intensive-pill">
+                            {getIntensiveStatusLabel(
+                              (intensiveByMarathon[marathon.id] ?? defaultIntensiveState()).phase,
+                              { lives: progress.lives, completedTopicIds: progress.completedTopicIds },
+                              marathon.topics.length,
+                              null
+                            )}
+                          </div>
+                        ) : null}
                         <div className="profile-progress-track">
                           <div className="profile-progress-fill" style={{ width: `${completion}%` }} />
                         </div>
@@ -645,131 +801,154 @@ export default function App() {
             </Div>
           </Group>
         ) : selectedMarathon ? (
-          <Group header={<Header className="story-group-title">{selectedMarathon.title}</Header>}>
-            <Div className="topic-content-card">
-              {isTestMarathon(selectedMarathon) ? (
-                <p className="topic-content-helper">Тестовый режим: все темы доступны сразу, без ограничений по времени и жизням.</p>
-              ) : (
-                <>
-                  <p className="topic-content-helper">
-                    Новая тема открывается каждые 24 часа и только после прохождения предыдущей. Всего 3 жизни.
-                  </p>
-                  <p className="topic-content-text">Дата старта: {formatDate(selectedMarathon.startAtIso)}</p>
-                </>
-              )}
+          isIntensiveMvpMarathon(selectedMarathon) ? (
+            <IntensiveMarathonFlow
+              marathon={selectedMarathon}
+              userName={vkUserName}
+              progress={{
+                lives: getProgress(selectedMarathon.id).lives,
+                completedTopicIds: getProgress(selectedMarathon.id).completedTopicIds
+              }}
+              updateProgress={(fn) => {
+                updateProgress(selectedMarathon.id, (p) => {
+                  const next = fn({ lives: p.lives, completedTopicIds: p.completedTopicIds });
+                  return { ...p, lives: next.lives, completedTopicIds: next.completedTopicIds };
+                });
+              }}
+              intensive={intensiveByMarathon[selectedMarathon.id] ?? defaultIntensiveState()}
+              setIntensive={(fn) => mergeIntensiveState(selectedMarathon.id, fn)}
+              onReentryReset={() => resetIntensiveMarathonAttempt(selectedMarathon.id)}
+              onBack={() => setSelectedMarathonId(null)}
+            />
+          ) : (
+            <Group header={<Header className="story-group-title">{selectedMarathon.title}</Header>}>
+              <Div className="topic-content-card">
+                {isTestMarathon(selectedMarathon) ? (
+                  <p className="topic-content-helper">Тестовый режим: все темы доступны сразу, без ограничений по времени и жизням.</p>
+                ) : (
+                  <>
+                    <p className="topic-content-helper">
+                      Новая тема открывается каждые {selectedMarathon.unlockIntervalHours ?? 24} ч после предыдущей (или от
+                      старта для первой) и только после прохождения предыдущей. Окно прохождения:{" "}
+                      {selectedMarathon.topicWindowHours ?? 24} ч. Жизней: 3.
+                    </p>
+                    <p className="topic-content-text">Дата старта: {formatDate(selectedMarathon.startAtIso)}</p>
+                  </>
+                )}
 
-              <div className="topic-list">
-                {selectedMarathon.topics.map((topic, index) => {
-                  const progress = getProgress(selectedMarathon.id);
-                  const state = getTopicState(selectedMarathon, index, progress);
-                  const testMode = isTestMarathon(selectedMarathon);
-                  const taskTypes = topic.taskTypes ?? [];
-                  const allTaskTypesCompleted = taskTypes.every((taskType) => isTestTaskCompleted(topic.id, taskType));
-                  const canCompleteTopic = testMode ? allTaskTypesCompleted : !state.isLocked;
-                  const completeTopicButtonLabel = testMode
-                    ? state.isCompleted
-                      ? "Тема пройдена"
-                      : allTaskTypesCompleted
-                        ? "Завершить тему"
-                        : "Сначала пройди задания"
-                    : "Пройти тему";
+                <div className="topic-list">
+                  {selectedMarathon.topics.map((topic, index) => {
+                    const progress = getProgress(selectedMarathon.id);
+                    const state = getTopicState(selectedMarathon, index, progress);
+                    const testMode = isTestMarathon(selectedMarathon);
+                    const taskTypes = topic.taskTypes ?? [];
+                    const allTaskTypesCompleted = taskTypes.every((taskType) => isTestTaskCompleted(topic.id, taskType));
+                    const canCompleteTopic = testMode ? allTaskTypesCompleted : !state.isLocked;
+                    const completeTopicButtonLabel = testMode
+                      ? state.isCompleted
+                        ? "Тема пройдена"
+                        : allTaskTypesCompleted
+                          ? "Завершить тему"
+                          : "Сначала пройди задания"
+                      : "Пройти тему";
 
-                  return (
-                    <div key={topic.id} className="marathon-topic-item">
-                      <div className="marathon-topic-title">{topic.title}</div>
-                      <div className="marathon-topic-sub">
-                        {state.isCompleted
-                          ? "Статус: пройдено"
-                          : state.isLocked
-                            ? "Статус: закрыто"
-                            : "Статус: доступно"}
-                      </div>
-                      {testMode ? (
-                        <>
-                          <div className="marathon-topic-sub">Режим доступа: без ограничений</div>
-                          {taskTypes.length > 0 ? (
-                            <div className="topic-task-types-wrap">
-                              <div className="topic-task-types-title">Задания в теме:</div>
-                              <div className="topic-task-types-list">
-                                {taskTypes.map((taskType) => (
-                                  <button
-                                    key={`${topic.id}-${taskType}`}
-                                    type="button"
-                                    className={`topic-task-type-chip ${isTestTaskCompleted(topic.id, taskType) ? "topic-task-type-chip-done" : ""}`}
-                                    onClick={() => openTestTask(topic.id, taskType)}
-                                  >
-                                    {getTaskTypeLabel(taskType)}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ) : null}
-                        </>
-                      ) : (
-                        <>
-                          <div className="marathon-topic-sub">Откроется: {new Date(state.unlockMs).toLocaleString("ru-RU")}</div>
-                          <div className="marathon-topic-sub">Окно прохождения: до {new Date(state.windowEndsMs).toLocaleString("ru-RU")}</div>
-                        </>
-                      )}
-
-                      <div className="topic-actions">
-                        <Button className="topic-primary-btn" disabled={!canCompleteTopic || state.isCompleted} onClick={() => completeTopic(topic.id)}>
-                          {completeTopicButtonLabel}
-                        </Button>
-                        {testMode ? (
-                          <Button
-                            mode="secondary"
-                            className="topic-secondary-btn"
-                            disabled={taskTypes.length === 0}
-                            onClick={() => openTestTask(topic.id, taskTypes[0] ?? "video")}
-                          >
-                            Открыть задания
-                          </Button>
-                        ) : null}
-                        {!testMode ? (
-                          <Button
-                            mode="secondary"
-                            className="topic-secondary-btn"
-                            disabled={state.isLocked || progress.lives <= 0}
-                            onClick={() => loseLifeByTest(topic.id)}
-                          >
-                            Не прошел тест (-1 жизнь)
-                          </Button>
-                        ) : null}
-                      </div>
-
-                      {!testMode ? (
-                        <div className="topic-actions">
-                          <Button
-                            mode="secondary"
-                            className="topic-secondary-btn"
-                            disabled={state.isLocked || progress.lives <= 0}
-                            onClick={() => loseLifeByTask(topic.id)}
-                          >
-                            Не выполнил задание (-1 жизнь)
-                          </Button>
-                          <Button
-                            mode="secondary"
-                            className="topic-secondary-btn"
-                            disabled={state.isLocked || !state.isMissedByTime || progress.lives <= 0}
-                            onClick={() => applyDeadlinePenalty(topic.id)}
-                          >
-                            Пропустил 24ч окно (-1 жизнь)
-                          </Button>
+                    return (
+                      <div key={topic.id} className="marathon-topic-item">
+                        <div className="marathon-topic-title">{topic.title}</div>
+                        <div className="marathon-topic-sub">
+                          {state.isCompleted
+                            ? "Статус: пройдено"
+                            : state.isLocked
+                              ? "Статус: закрыто"
+                              : "Статус: доступно"}
                         </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
+                        {testMode ? (
+                          <>
+                            <div className="marathon-topic-sub">Режим доступа: без ограничений</div>
+                            {taskTypes.length > 0 ? (
+                              <div className="topic-task-types-wrap">
+                                <div className="topic-task-types-title">Задания в теме:</div>
+                                <div className="topic-task-types-list">
+                                  {taskTypes.map((taskType) => (
+                                    <button
+                                      key={`${topic.id}-${taskType}`}
+                                      type="button"
+                                      className={`topic-task-type-chip ${isTestTaskCompleted(topic.id, taskType) ? "topic-task-type-chip-done" : ""}`}
+                                      onClick={() => openTestTask(topic.id, taskType)}
+                                    >
+                                      {getTaskTypeLabel(taskType)}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                          </>
+                        ) : (
+                          <>
+                            <div className="marathon-topic-sub">Откроется: {new Date(state.unlockMs).toLocaleString("ru-RU")}</div>
+                            <div className="marathon-topic-sub">Окно прохождения: до {new Date(state.windowEndsMs).toLocaleString("ru-RU")}</div>
+                          </>
+                        )}
 
-              <div className="topic-actions">
-                <Button mode="secondary" className="topic-secondary-btn" onClick={() => setSelectedMarathonId(null)}>
-                  Назад к списку марафонов
-                </Button>
-              </div>
-            </Div>
-          </Group>
+                        <div className="topic-actions">
+                          <Button className="topic-primary-btn" disabled={!canCompleteTopic || state.isCompleted} onClick={() => completeTopic(topic.id)}>
+                            {completeTopicButtonLabel}
+                          </Button>
+                          {testMode ? (
+                            <Button
+                              mode="secondary"
+                              className="topic-secondary-btn"
+                              disabled={taskTypes.length === 0}
+                              onClick={() => openTestTask(topic.id, taskTypes[0] ?? "video")}
+                            >
+                              Открыть задания
+                            </Button>
+                          ) : null}
+                          {!testMode ? (
+                            <Button
+                              mode="secondary"
+                              className="topic-secondary-btn"
+                              disabled={state.isLocked || progress.lives <= 0}
+                              onClick={() => loseLifeByTest(topic.id)}
+                            >
+                              Не прошел тест (-1 жизнь)
+                            </Button>
+                          ) : null}
+                        </div>
+
+                        {!testMode ? (
+                          <div className="topic-actions">
+                            <Button
+                              mode="secondary"
+                              className="topic-secondary-btn"
+                              disabled={state.isLocked || progress.lives <= 0}
+                              onClick={() => loseLifeByTask(topic.id)}
+                            >
+                              Не выполнил задание (-1 жизнь)
+                            </Button>
+                            <Button
+                              mode="secondary"
+                              className="topic-secondary-btn"
+                              disabled={state.isLocked || !state.isMissedByTime || progress.lives <= 0}
+                              onClick={() => applyDeadlinePenalty(topic.id)}
+                            >
+                              Пропустил 24ч окно (-1 жизнь)
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="topic-actions">
+                  <Button mode="secondary" className="topic-secondary-btn" onClick={() => setSelectedMarathonId(null)}>
+                    Назад к списку марафонов
+                  </Button>
+                </div>
+              </Div>
+            </Group>
+          )
         ) : (
           <Group header={<Header className="story-group-title">Доступные марафоны</Header>}>
             <Div className="topic-list">
@@ -780,10 +959,19 @@ export default function App() {
                   Стартуй с базового марафона, проходи темы по шагам и фиксируй прогресс без перегруза.
                 </p>
               </div>
-              {MARATHONS.map((marathon) => {
+              {marathonsLoadError ? (
+                <Div className="topic-content-card marathon-api-hint">
+                  <p className="topic-content-text">{marathonsLoadError}</p>
+                  <Button mode="secondary" className="topic-secondary-btn" onClick={() => void loadMarathons()}>
+                    Повторить загрузку
+                  </Button>
+                </Div>
+              ) : null}
+              {marathons.map((marathon) => {
                 const isRegistered = registeredMarathonIds.includes(marathon.id);
                 const progress = getProgress(marathon.id);
-                const isBlocked = !isTestMarathon(marathon) && progress.lives <= 0;
+                const isBlocked =
+                  !isTestMarathon(marathon) && !isIntensiveMvpMarathon(marathon) && progress.lives <= 0;
 
                 return (
                   <div
@@ -793,6 +981,9 @@ export default function App() {
                     <div className="topic-card-title">{marathon.title}</div>
                     <div className="topic-card-subtitle">{marathon.description}</div>
                     <div className="marathon-badges-row">
+                      {isIntensiveMvpMarathon(marathon) ? (
+                        <span className="status-badge status-intensive">Интенсив MVP</span>
+                      ) : null}
                       {isTestMarathon(marathon) ? (
                         <span className="status-badge status-test">Тестовый</span>
                       ) : null}
@@ -815,12 +1006,73 @@ export default function App() {
                         disabled={!isRegistered || isBlocked}
                         onClick={() => setSelectedMarathonId(marathon.id)}
                       >
-                        {isTestMarathon(marathon) ? "Открыть без ограничений" : isBlocked ? "Жизни закончились" : "Открыть марафон"}
+                        {isTestMarathon(marathon)
+                          ? "Открыть без ограничений"
+                          : isBlocked
+                            ? "Жизни закончились"
+                            : isIntensiveMvpMarathon(marathon)
+                              ? "Открыть интенсив"
+                              : "Открыть марафон"}
                       </Button>
                     </div>
                   </div>
                 );
               })}
+              <div className="topic-card topic-card-neutral marathon-create-card">
+                <div className="topic-card-title">Создать марафон (демо)</div>
+                <p className="topic-card-subtitle">
+                  Черновик уходит на бэкенд: темы по одной строке, интервал открытия и окно прохождения — как в MVP «один день».
+                </p>
+                <div className="marathon-create-fields">
+                  <label className="marathon-create-label">
+                    Название
+                    <Input value={createTitle} onChange={(e) => setCreateTitle(e.target.value)} placeholder="Например: Интенсив выходного дня" />
+                  </label>
+                  <label className="marathon-create-label">
+                    Описание
+                    <Input value={createDescription} onChange={(e) => setCreateDescription(e.target.value)} placeholder="Коротко о потоке" />
+                  </label>
+                  <label className="marathon-create-label">
+                    Старт (локальное время)
+                    <input
+                      type="datetime-local"
+                      className="marathon-create-datetime"
+                      value={createStartLocal}
+                      onChange={(e) => setCreateStartLocal(e.target.value)}
+                    />
+                  </label>
+                  <label className="marathon-create-label">
+                    Темы (каждая с новой строки)
+                    <Textarea value={createTopicsText} onChange={(e) => setCreateTopicsText(e.target.value)} rows={4} />
+                  </label>
+                  <div className="marathon-create-row">
+                    <label className="marathon-create-label marathon-create-label-inline">
+                      Интервал открытия, ч
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        value={createUnlockHours}
+                        onChange={(e) => setCreateUnlockHours(e.target.value)}
+                      />
+                    </label>
+                    <label className="marathon-create-label marathon-create-label-inline">
+                      Окно темы, ч
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        value={createWindowHours}
+                        onChange={(e) => setCreateWindowHours(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                </div>
+                {createMessage ? <p className="topic-content-text marathon-create-message">{createMessage}</p> : null}
+                <div className="topic-actions">
+                  <Button className="topic-primary-btn" disabled={createBusy} onClick={() => void submitCreateMarathon()}>
+                    {createBusy ? "Создаём…" : "Создать марафон"}
+                  </Button>
+                </div>
+              </div>
             </Div>
           </Group>
         )}

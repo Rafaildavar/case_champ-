@@ -61,5 +61,47 @@ export const apiClient = {
   },
   listLessons() {
     return request<LessonSummary[]>("/lessons");
+  },
+
+  listMarathons() {
+    return request<ApiMarathon[]>("/marathons");
+  },
+
+  createMarathon(payload: CreateMarathonPayload) {
+    return request<ApiMarathon>("/marathons", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
   }
+};
+
+export type ApiMarathonTopic = {
+  id: string;
+  title: string;
+  task_types: ApiTaskType[] | null;
+};
+
+export type ApiTaskType = "video" | "test" | "practice" | "matching" | "calculator";
+
+export type ApiMarathon = {
+  id: string;
+  title: string;
+  description: string;
+  status: "open" | "closed";
+  mode: "regular" | "test";
+  start_at_iso: string;
+  unlock_interval_hours: number;
+  topic_window_hours: number;
+  topics: ApiMarathonTopic[];
+};
+
+export type CreateMarathonPayload = {
+  title: string;
+  description?: string;
+  status?: "open" | "closed";
+  mode?: "regular" | "test";
+  start_at_iso: string;
+  topic_titles: string[];
+  unlock_interval_hours?: number;
+  topic_window_hours?: number;
 };
