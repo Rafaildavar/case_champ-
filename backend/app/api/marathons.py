@@ -76,7 +76,7 @@ def _seed_one_day_marathon() -> None:
         return
     MARATHONS[mid] = {
         "id": mid,
-        "title": "MVP: один день марафона",
+        "title": "MVP марафона.",
         "description": (
             "Интенсив ЗПИФ: один учебный день, 4 этапа подряд, 3 жизни, тест от 65%, "
             "24 ч на этап с момента открытия. В конце — награда (паи после условий), клуб, сертификат. Демо: даты условные."
@@ -88,9 +88,9 @@ def _seed_one_day_marathon() -> None:
         "topic_window_hours": 8.0,
         "topics": [
             {"id": _topic_id(mid, 0), "title": "День 1 · Утро: что такое ЗПИФ", "task_types": None},
-            {"id": _topic_id(mid, 1), "title": "День 1 · День: риски и горизонт", "task_types": None},
-            {"id": _topic_id(mid, 2), "title": "День 1 · Вечер: дисциплина и план", "task_types": None},
-            {"id": _topic_id(mid, 3), "title": "День 1 · Финиш: мини-кейс", "task_types": None},
+            {"id": _topic_id(mid, 1), "title": "День 2 · День: риски и горизонт", "task_types": None},
+            {"id": _topic_id(mid, 2), "title": "День 3 · Вечер: дисциплина и план", "task_types": None},
+            {"id": _topic_id(mid, 3), "title": "День 4 · Финиш: мини-кейс", "task_types": None},
         ],
     }
 

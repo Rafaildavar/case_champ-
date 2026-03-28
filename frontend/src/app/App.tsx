@@ -118,7 +118,7 @@ const FALLBACK_MARATHONS: Marathon[] = [
   },
   {
     id: INTENSIVE_MVP_MARATHON_ID,
-    title: "MVP: один день марафона",
+    title: "MVP марафона.",
     description:
       "Интенсив ЗПИФ: 4 этапа за день, жизни и тест 65%, награда и клуб на финише. Запишись и открой — демо без привязки к календарю потока.",
     status: "open",
@@ -128,9 +128,9 @@ const FALLBACK_MARATHONS: Marathon[] = [
     topicWindowHours: 8,
     topics: [
       { id: "m-one-day-t1", title: "День 1 · Утро: что такое ЗПИФ" },
-      { id: "m-one-day-t2", title: "День 1 · День: риски и горизонт" },
-      { id: "m-one-day-t3", title: "День 1 · Вечер: дисциплина и план" },
-      { id: "m-one-day-t4", title: "День 1 · Финиш: мини-кейс" }
+      { id: "m-one-day-t2", title: "День 2 · День: риски и горизонт" },
+      { id: "m-one-day-t3", title: "День 3 · Вечер: дисциплина и план" },
+      { id: "m-one-day-t4", title: "День 4 · Финиш: мини-кейс" }
     ]
   }
 ];
