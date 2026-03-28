@@ -6,24 +6,33 @@ import "@vkontakte/vkui/dist/vkui.css";
 import "./index.css";
 import App from "./app/App";
 
-// Force dark VK scheme in host environments that still provide light appearance.
-document.documentElement.setAttribute("scheme", "space_gray");
-document.body.setAttribute("scheme", "space_gray");
+function applyAppearance(appearance?: string) {
+  const isDark = appearance !== "light";
+  document.body.classList.toggle("dark-theme", isDark);
+  document.body.classList.toggle("light-theme", !isDark);
+  document.documentElement.setAttribute("scheme", isDark ? "space_gray" : "bright_light");
+  document.body.setAttribute("scheme", isDark ? "space_gray" : "bright_light");
+}
+
+const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+applyAppearance(prefersDark ? "dark" : "light");
 
 bridge.subscribe((e) => {
   if (e.detail.type !== "VKWebAppUpdateConfig") return;
-  // Product requirement: theme must stay dark regardless of device/system appearance.
-  document.documentElement.setAttribute("scheme", "space_gray");
-  document.body.setAttribute("scheme", "space_gray");
-  document.body.classList.add("dark-theme");
+  applyAppearance(e.detail.data?.appearance);
 });
 
-document.body.classList.add("dark-theme");
+void bridge
+  .send("VKWebAppGetConfig")
+  .then((config) => applyAppearance((config as { appearance?: string })?.appearance))
+  .catch(() => {
+    // Keep media-query fallback when VK config is unavailable.
+  });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ConfigProvider appearance="dark">
-      <AppRoot appearance="dark">
+    <ConfigProvider>
+      <AppRoot>
         <App />
       </AppRoot>
     </ConfigProvider>

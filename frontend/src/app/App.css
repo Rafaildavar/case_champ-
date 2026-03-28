@@ -1,3 +1,21 @@
+:root {
+  --app-page-bg: #1a1527;
+  --app-text: #f1edff;
+  --app-underlay:
+    radial-gradient(circle at top right, rgba(148, 120, 255, 0.2), rgba(148, 120, 255, 0) 42%),
+    linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
+  --app-surface-grad: linear-gradient(165deg, rgba(16, 16, 21, 0.98) 0%, rgba(24, 22, 38, 0.98) 100%);
+}
+
+body.light-theme {
+  --app-page-bg: #f3f5fb;
+  --app-text: #1c2432;
+  --app-underlay:
+    radial-gradient(circle at top right, rgba(86, 127, 255, 0.16), rgba(86, 127, 255, 0) 42%),
+    linear-gradient(180deg, #f7f9ff 0%, #edf2ff 55%, #e8eeff 100%);
+  --app-surface-grad: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 247, 255, 0.98) 100%);
+}
+
 html,
 body,
 #root,
@@ -12,8 +30,8 @@ body,
 .vkuiGroup,
 .vkuiGroup__inner,
 .vkuiGroup__separator {
-  background: #1a1527 !important;
-  color: #f1edff;
+  background: var(--app-page-bg) !important;
+  color: var(--app-text);
 }
 
 .app-force-dark {
@@ -27,9 +45,7 @@ body,
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle at top right, rgba(148, 120, 255, 0.2), rgba(148, 120, 255, 0) 42%),
-    linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
+  background: var(--app-underlay);
 }
 
 .app-force-dark .vkuiRoot,
@@ -45,9 +61,7 @@ body,
   min-height: 100svh;
   position: relative;
   z-index: 1;
-  background:
-    radial-gradient(circle at top right, rgba(148, 120, 255, 0.2), rgba(148, 120, 255, 0) 42%),
-    linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
+  background: var(--app-underlay);
 }
 
 .story-panel,
@@ -60,7 +74,7 @@ body,
 .story-panel .vkuiSplitLayout,
 .story-panel .vkuiSplitLayout__inner,
 .story-panel .vkuiSplitCol {
-  background-color: #1a1527 !important;
+  background-color: var(--app-page-bg) !important;
 }
 
 /* Force dark canvas inside VKUI wrappers (some mobile hosts may keep light Group backgrounds). */
@@ -68,7 +82,7 @@ body,
 .story-panel [class*="Panel__content"],
 .story-panel [class*="Group__inner"],
 .story-panel [class*="Group__separator"] {
-  background: #1a1527 !important;
+  background: var(--app-page-bg) !important;
 }
 
 .story-topbar {
@@ -141,7 +155,7 @@ body,
 .landing-hero-card {
   border-radius: 26px;
   border: 1px solid rgba(175, 160, 246, 0.2);
-  background: linear-gradient(165deg, rgba(16, 16, 21, 0.98) 0%, rgba(24, 22, 38, 0.98) 100%);
+  background: var(--app-surface-grad);
   color: #ffffff;
   padding: 22px 18px 20px;
   box-shadow: 0 20px 28px rgba(9, 6, 27, 0.45);
@@ -183,7 +197,103 @@ body,
 
 .topic-card-blue,
 .topic-card-neutral {
-  background: linear-gradient(165deg, rgba(16, 16, 21, 0.98) 0%, rgba(25, 22, 40, 0.98) 100%);
+  background: var(--app-surface-grad);
+}
+
+body.light-theme .story-topbar {
+  background: rgba(252, 253, 255, 0.92);
+  color: #1d2433;
+  border-bottom: 1px solid rgba(165, 177, 214, 0.45);
+}
+
+body.light-theme .story-topbar * {
+  color: #1d2433;
+}
+
+body.light-theme .story-group-title {
+  color: #1f2635;
+}
+
+body.light-theme .vk-user-chip {
+  border-color: rgba(140, 153, 189, 0.4);
+  background: rgba(255, 255, 255, 0.95);
+  color: #2d3b55;
+}
+
+body.light-theme .tabs-row {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(159, 172, 208, 0.45);
+  box-shadow: 0 8px 14px rgba(78, 96, 145, 0.14);
+}
+
+body.light-theme .tab-pill {
+  color: #4a5b82;
+}
+
+body.light-theme .tab-pill-active {
+  border-color: rgba(107, 125, 173, 0.45);
+  color: #ffffff;
+  background: linear-gradient(180deg, #6f86d6 0%, #586ec2 100%);
+  box-shadow: 0 6px 12px rgba(63, 82, 134, 0.28);
+}
+
+body.light-theme .landing-screen-link {
+  color: #415275;
+}
+
+body.light-theme .landing-screen-progress {
+  background: rgba(119, 142, 201, 0.2);
+}
+
+body.light-theme .landing-screen-progress-fill {
+  background: linear-gradient(90deg, #8ca6ff 0%, #6f8dff 100%);
+}
+
+body.light-theme .landing-hero-card,
+body.light-theme .topic-card,
+body.light-theme .topic-content-card {
+  border-color: rgba(168, 182, 221, 0.42);
+  box-shadow: 0 14px 24px rgba(96, 114, 160, 0.16);
+  color: #24324b;
+}
+
+body.light-theme .landing-hero-kicker {
+  color: #60729a;
+}
+
+body.light-theme .landing-hero-title,
+body.light-theme .topic-card-title {
+  color: #1f2940;
+}
+
+body.light-theme .landing-hero-text,
+body.light-theme .topic-card-subtitle {
+  color: #4b5d82;
+}
+
+body.light-theme .status-open {
+  background: rgba(86, 197, 132, 0.18);
+  color: #23754c;
+}
+
+body.light-theme .status-test {
+  background: rgba(115, 102, 227, 0.14);
+  color: #4f43b3;
+}
+
+body.light-theme .status-intensive {
+  background: rgba(255, 187, 92, 0.22);
+  color: #9b5b08;
+}
+
+body.light-theme .status-closed {
+  background: rgba(111, 128, 168, 0.16);
+  color: #56678d;
+}
+
+body.light-theme .date-badge {
+  background: rgba(108, 137, 215, 0.16);
+  color: #41588f;
 }
 
 .topic-card-title {
