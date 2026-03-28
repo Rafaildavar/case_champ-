@@ -774,7 +774,10 @@ export function IntensiveMarathonFlow({
               <Button
                 className="topic-primary-btn"
                 disabled={!steps.resultViewed}
-                onClick={() => completeTopic(activeTopic.id)}
+                onClick={() => {
+                  completeTopic(activeTopic.id);
+                  setOpenedTopicId(null);
+                }}
               >
                 Завершить этап
               </Button>
