@@ -1,6 +1,18 @@
 html,
-body {
-  background: #1a1527;
+body,
+#root,
+.vkuiAppRoot,
+.vkuiRoot,
+.vkuiSplitLayout,
+.vkuiSplitLayout__inner,
+.vkuiSplitCol,
+.vkuiPanel,
+.vkuiPanel__in,
+.vkuiPanel__content,
+.vkuiGroup,
+.vkuiGroup__inner,
+.vkuiGroup__separator {
+  background: #1a1527 !important;
   color: #f1edff;
 }
 .story-panel {
@@ -20,7 +32,7 @@ body {
 .story-panel .vkuiSplitLayout,
 .story-panel .vkuiSplitLayout__inner,
 .story-panel .vkuiSplitCol {
-  background-color: transparent !important;
+  background-color: #1a1527 !important;
 }
 
 /* Force dark canvas inside VKUI wrappers (some mobile hosts may keep light Group backgrounds). */
@@ -28,7 +40,7 @@ body {
 .story-panel [class*="Panel__content"],
 .story-panel [class*="Group__inner"],
 .story-panel [class*="Group__separator"] {
-  background: transparent !important;
+  background: #1a1527 !important;
 }
 
 .story-topbar {
