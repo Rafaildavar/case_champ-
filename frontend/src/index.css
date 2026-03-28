@@ -101,6 +101,10 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
+body.dark-theme {
+  background: #16171d !important;
+}
+
 h1,
 h2 {
   font-family: var(--heading);
