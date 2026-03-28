@@ -296,6 +296,167 @@ body.light-theme .date-badge {
   color: #41588f;
 }
 
+body.light-theme .topic-content-card,
+body.light-theme .profile-hero-card,
+body.light-theme .profile-stat-card,
+body.light-theme .profile-empty-card,
+body.light-theme .profile-progress-card,
+body.light-theme .marathon-topic-item,
+body.light-theme .test-task-screen,
+body.light-theme .intensive-day-card,
+body.light-theme .intensive-reward-block {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(243, 247, 255, 0.98) 100%);
+  border-color: rgba(168, 182, 221, 0.42);
+  box-shadow: 0 14px 24px rgba(96, 114, 160, 0.16);
+}
+
+body.light-theme .topic-content-title,
+body.light-theme .profile-hero-title,
+body.light-theme .profile-empty-title,
+body.light-theme .profile-item-title,
+body.light-theme .marathon-topic-title,
+body.light-theme .intensive-subtitle,
+body.light-theme .intensive-step-head,
+body.light-theme .duo-intro-title,
+body.light-theme .duo-task-header-title {
+  color: #1f2940;
+}
+
+body.light-theme .topic-content-text,
+body.light-theme .topic-content-helper,
+body.light-theme .topic-content-meta,
+body.light-theme .profile-hero-subtitle,
+body.light-theme .profile-empty-text,
+body.light-theme .profile-progress-sub,
+body.light-theme .marathon-topic-sub,
+body.light-theme .intensive-user-chip,
+body.light-theme .intensive-bullet-list,
+body.light-theme .intensive-week-list,
+body.light-theme .intensive-source-list,
+body.light-theme .duo-intro-lead,
+body.light-theme .duo-material-text,
+body.light-theme .duo-intro-list,
+body.light-theme .test-task-text,
+body.light-theme .test-task-question,
+body.light-theme .test-task-field,
+body.light-theme .test-task-result,
+body.light-theme .intensive-quiz-title {
+  color: #4b5d82;
+}
+
+body.light-theme .profile-stat-label,
+body.light-theme .profile-intensive-pill,
+body.light-theme .topic-task-types-title,
+body.light-theme .intensive-kicker,
+body.light-theme .intensive-legal-note,
+body.light-theme .intensive-status-footer,
+body.light-theme .intensive-source-fake,
+body.light-theme .duo-step-kicker,
+body.light-theme .duo-flow-progress-labels,
+body.light-theme .duo-video-caption {
+  color: #60729a;
+}
+
+body.light-theme .profile-stat-value,
+body.light-theme .profile-progress-percent {
+  color: #2f4570;
+}
+
+body.light-theme .profile-date-badge,
+body.light-theme .profile-intensive-pill,
+body.light-theme .duo-task-step-badge {
+  background: rgba(108, 137, 215, 0.14);
+  border-color: rgba(108, 137, 215, 0.32);
+  color: #41588f;
+}
+
+body.light-theme .topic-secondary-btn,
+body.light-theme .topic-task-type-chip,
+body.light-theme .test-task-close,
+body.light-theme .test-task-option,
+body.light-theme .test-task-hint,
+body.light-theme .test-task-textarea,
+body.light-theme .test-task-input,
+body.light-theme .calc-chip,
+body.light-theme .calc-result,
+body.light-theme .intensive-rail-item,
+body.light-theme .intensive-video-placeholder,
+body.light-theme .duo-image-placeholder,
+body.light-theme .duo-video-placeholder {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(159, 172, 208, 0.45);
+  color: #415275;
+}
+
+body.light-theme .topic-task-type-chip-done {
+  border-color: rgba(86, 197, 132, 0.36);
+  background: rgba(86, 197, 132, 0.18);
+  color: #23754c;
+}
+
+body.light-theme .test-task-option-active {
+  border-color: rgba(107, 125, 173, 0.55);
+  background: rgba(111, 134, 214, 0.2);
+  color: #2a3d68;
+}
+
+body.light-theme .calc-label,
+body.light-theme .calc-result-line,
+body.light-theme .calc-note,
+body.light-theme .topic-match-pill,
+body.light-theme .topic-match-pill-active,
+body.light-theme .topic-task-type-chip,
+body.light-theme .intensive-rail-title,
+body.light-theme .intensive-rail-open-label,
+body.light-theme .intensive-rail-timer,
+body.light-theme .duo-image-placeholder-label,
+body.light-theme .duo-reels-placeholder {
+  color: #4a5b82;
+}
+
+body.light-theme .duo-task-success {
+  border-color: rgba(86, 197, 132, 0.35);
+  background: rgba(86, 197, 132, 0.16);
+}
+
+body.light-theme .duo-task-success-title {
+  color: #23754c;
+}
+
+body.light-theme .duo-task-success-text,
+body.light-theme .intensive-step-done,
+body.light-theme .intensive-rail-badge {
+  color: #2f8d5d;
+}
+
+body.light-theme .intensive-step {
+  border-bottom-color: rgba(108, 137, 215, 0.2);
+}
+
+body.light-theme .intensive-step-num,
+body.light-theme .intensive-rail-num {
+  background: rgba(111, 134, 214, 0.2);
+  color: #2a3d68;
+}
+
+body.light-theme .intensive-lives {
+  color: #a45943;
+}
+
+body.light-theme .duo-task-back {
+  color: #415275;
+}
+
+body.light-theme .duo-flow-progress-track,
+body.light-theme .profile-progress-track {
+  background: rgba(119, 142, 201, 0.2);
+}
+
+body.light-theme .duo-flow-progress-fill,
+body.light-theme .profile-progress-fill {
+  background: linear-gradient(90deg, #8ca6ff 0%, #6f8dff 100%);
+}
+
 .topic-card-title {
   font-size: 23px;
   font-weight: 700;
