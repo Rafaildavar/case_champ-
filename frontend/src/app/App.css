@@ -1255,6 +1255,18 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.intensive-rail-btn {
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.intensive-rail-btn:disabled {
+  cursor: not-allowed;
+}
+
 .intensive-rail-locked {
   opacity: 0.45;
 }
@@ -1267,6 +1279,16 @@ body {
 .intensive-rail-done {
   opacity: 0.85;
   border-color: rgba(111, 230, 166, 0.35);
+}
+
+.intensive-rail-open-label {
+  font-size: 12px;
+  color: #9f97c4;
+  justify-self: end;
+}
+
+.intensive-day-tab-head {
+  margin-bottom: 10px;
 }
 
 .intensive-rail-num {

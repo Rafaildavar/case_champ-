@@ -159,11 +159,18 @@ export function IntensiveMarathonFlow({
 }: Props) {
   const topics = marathon.topics;
   const [nowTick, setNowTick] = useState(() => Date.now());
+  const [openedTopicId, setOpenedTopicId] = useState<string | null>(null);
 
   useEffect(() => {
     const id = window.setInterval(() => setNowTick(Date.now()), 1000);
     return () => window.clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (intensive.phase !== "active") {
+      setOpenedTopicId(null);
+    }
+  }, [intensive.phase]);
 
   const isTopicUnlocked = useCallback(
     (index: number): boolean => {
@@ -238,7 +245,7 @@ export function IntensiveMarathonFlow({
     }
   }, [intensive.phase, progress.completedTopicIds.length, setIntensive, topics.length]);
 
-  const activeTopicIndex = useMemo(() => {
+  const nextOpenTopicIndex = useMemo(() => {
     if (intensive.phase !== "active") return null;
     for (let i = 0; i < topics.length; i++) {
       if (!isTopicUnlocked(i)) continue;
@@ -249,9 +256,22 @@ export function IntensiveMarathonFlow({
     return null;
   }, [intensive.phase, isTopicUnlocked, progress.completedTopicIds, topics]);
 
-  const activeTopic = activeTopicIndex !== null ? topics[activeTopicIndex] : null;
+  const openedTopicIndex = useMemo(() => {
+    if (!openedTopicId) return null;
+    const idx = topics.findIndex((t) => t.id === openedTopicId);
+    return idx >= 0 ? idx : null;
+  }, [openedTopicId, topics]);
+
+  const selectedTopicIndex = useMemo(() => {
+    if (openedTopicIndex === null) return null;
+    if (!isTopicUnlocked(openedTopicIndex)) return null;
+    return openedTopicIndex;
+  }, [isTopicUnlocked, openedTopicIndex]);
+
+  const statusTopicIndex = selectedTopicIndex ?? nextOpenTopicIndex;
+  const activeTopic = selectedTopicIndex !== null ? topics[selectedTopicIndex] : null;
   const steps = activeTopic ? getTopicSteps(intensive, activeTopic.id) : null;
-  const quiz = activeTopicIndex !== null ? quizForTopic(activeTopicIndex) : [];
+  const quiz = selectedTopicIndex !== null ? quizForTopic(selectedTopicIndex) : [];
 
   const patchTopic = (topicId: string, patch: Partial<IntensiveTopicProgress>) => {
     setIntensive((s) => {
@@ -331,7 +351,7 @@ export function IntensiveMarathonFlow({
   const statusFooter = (
     <p className="intensive-status-footer">
       Статус (MVP):{" "}
-      {getIntensiveStatusLabel(intensive.phase, progress, topics.length, activeTopicIndex)}
+      {getIntensiveStatusLabel(intensive.phase, progress, topics.length, statusTopicIndex)}
       {progress.lives < 3 ? (
         <>
           {" "}
@@ -583,31 +603,43 @@ export function IntensiveMarathonFlow({
           откроется, пока не просмотрен ролик, не пройден тест (≥{TEST_PASS_PERCENT}%) и не получен результат.
         </p>
 
-        <div className="intensive-topic-rail">
-          {topics.map((t, i) => {
-            const unlocked = isTopicUnlocked(i);
-            const done = progress.completedTopicIds.includes(t.id);
-            const left = unlockedDeadlineLeft(t.id);
-            return (
-              <div
-                key={t.id}
-                className={`intensive-rail-item ${done ? "intensive-rail-done" : ""} ${unlocked && !done ? "intensive-rail-active" : ""} ${!unlocked ? "intensive-rail-locked" : ""}`}
-              >
-                <span className="intensive-rail-num">{i + 1}</span>
-                <span className="intensive-rail-title">{t.title}</span>
-                {done ? <span className="intensive-rail-badge">готово</span> : null}
-                {!done && unlocked && left !== null ? (
-                  <span className="intensive-rail-timer">24ч: {formatCountdown(left)}</span>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-
-        {!activeTopic || !steps ? (
-          <p className="topic-content-text">Все этапы дня закрыты или загрузка…</p>
+        {!activeTopic ? (
+          <>
+            <div className="intensive-topic-rail">
+              {topics.map((t, i) => {
+                const unlocked = isTopicUnlocked(i);
+                const done = progress.completedTopicIds.includes(t.id);
+                const left = unlockedDeadlineLeft(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`intensive-rail-item intensive-rail-btn ${done ? "intensive-rail-done" : ""} ${unlocked && !done ? "intensive-rail-active" : ""} ${!unlocked ? "intensive-rail-locked" : ""}`}
+                    onClick={() => setOpenedTopicId(t.id)}
+                    disabled={!unlocked}
+                  >
+                    <span className="intensive-rail-num">{i + 1}</span>
+                    <span className="intensive-rail-title">{t.title}</span>
+                    {done ? <span className="intensive-rail-badge">готово</span> : null}
+                    {!done && unlocked && left !== null ? (
+                      <span className="intensive-rail-timer">24ч: {formatCountdown(left)}</span>
+                    ) : null}
+                    <span className="intensive-rail-open-label">Открыть задания</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="topic-content-helper">Нажми на нужный день, чтобы открыть отдельную вкладку с заданиями.</p>
+          </>
+        ) : !steps ? (
+          <p className="topic-content-text">Этап недоступен или данные еще загружаются…</p>
         ) : (
           <div className="intensive-day-card">
+            <div className="intensive-day-tab-head">
+              <Button mode="secondary" className="topic-secondary-btn" onClick={() => setOpenedTopicId(null)}>
+                ← Назад к дням
+              </Button>
+            </div>
             <h3 className="intensive-subtitle">{activeTopic.title}</h3>
 
             <section className="intensive-step">
