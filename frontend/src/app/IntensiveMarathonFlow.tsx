@@ -127,6 +127,10 @@ function formatCountdown(msLeft: number): string {
   return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
+function renderLivesHearts(lives: number, total = 3): string {
+  return Array.from({ length: total }, (_, index) => (index < lives ? "♥️" : "💔")).join(" ");
+}
+
 export function getIntensiveStatusLabel(
   phase: IntensivePhase,
   progress: ProgressSlice,
@@ -328,7 +332,17 @@ export function IntensiveMarathonFlow({
     <p className="intensive-status-footer">
       Статус (MVP):{" "}
       {getIntensiveStatusLabel(intensive.phase, progress, topics.length, activeTopicIndex)}
-      {progress.lives < 3 ? ` · жизней: ${progress.lives}/3` : ""}
+      {progress.lives < 3 ? (
+        <>
+          {" "}
+          · жизней:{" "}
+          <span className="lives-hearts lives-hearts-compact" aria-label={`Жизни: ${progress.lives}/3`}>
+            {renderLivesHearts(progress.lives)}
+          </span>
+        </>
+      ) : (
+        ""
+      )}
       {intensive.rewardFlowOpened ? " · оформление награды начато" : ""}
       {intensive.clubJoined ? " · клуб: вступил" : ""}
     </p>
@@ -556,7 +570,12 @@ export function IntensiveMarathonFlow({
     <Group header={<Header className="story-group-title">{marathon.title}</Header>}>
       <Div className="topic-content-card intensive-screen">
         <div className="intensive-top-bar">
-          <span className="intensive-lives">Жизни: {progress.lives}/3</span>
+          <span className="intensive-lives">
+            Жизни:{" "}
+            <span className="lives-hearts" aria-label={`Жизни: ${progress.lives}/3`}>
+              {renderLivesHearts(progress.lives)}
+            </span>
+          </span>
           <span className="intensive-user-chip">{userName}</span>
         </div>
         <p className="topic-content-helper">

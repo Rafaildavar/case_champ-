@@ -1216,6 +1216,16 @@ body {
   flex-wrap: wrap;
 }
 
+.lives-hearts {
+  font-size: 16px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.lives-hearts-compact {
+  font-size: 14px;
+}
+
 .intensive-lives {
   font-weight: 700;
   color: #ffb4a8;

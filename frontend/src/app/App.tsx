@@ -118,7 +118,7 @@ const FALLBACK_MARATHONS: Marathon[] = [
   },
   {
     id: INTENSIVE_MVP_MARATHON_ID,
-    title: "MVP марафона.",
+    title: "MVP марафона",
     description:
       "Интенсив ЗПИФ: 4 этапа за день, жизни и тест 65%, награда и клуб на финише. Запишись и открой — демо без привязки к календарю потока.",
     status: "open",
@@ -154,6 +154,10 @@ function formatDate(iso: string): string {
     hour: "2-digit",
     minute: "2-digit"
   });
+}
+
+function renderLivesHearts(lives: number, total = 3): string {
+  return Array.from({ length: total }, (_, index) => (index < lives ? "♥️" : "💔")).join(" ");
 }
 
 function isTestMarathon(marathon: Marathon): boolean {
@@ -734,7 +738,10 @@ export default function App() {
                           <span className="profile-progress-percent">{completion}%</span>
                         </div>
                         <div className="profile-progress-sub">
-                          Пройдено: {progress.completedTopicIds.length}/{marathon.topics.length} · Жизни: {progress.lives}/3
+                          Пройдено: {progress.completedTopicIds.length}/{marathon.topics.length} · Жизни: {" "}
+                          <span className="lives-hearts" aria-label={`Жизни: ${progress.lives}/3`}>
+                            {renderLivesHearts(progress.lives)}
+                          </span>
                         </div>
                         {isIntensiveMvpMarathon(marathon) ? (
                           <div className="profile-intensive-pill">
