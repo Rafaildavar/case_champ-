@@ -7,7 +7,7 @@ import App from "./app/App";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ConfigProvider appearance="dark">
-      <AppRoot>
+      <AppRoot appearance="dark">
         <App />
       </AppRoot>
     </ConfigProvider>

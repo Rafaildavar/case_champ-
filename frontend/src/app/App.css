@@ -10,6 +10,14 @@ body {
     linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
 }
 
+/* Force dark canvas inside VKUI wrappers (some mobile hosts may keep light Group backgrounds). */
+.story-panel [class*="Panel__in"],
+.story-panel [class*="Panel__content"],
+.story-panel [class*="Group__inner"],
+.story-panel [class*="Group__separator"] {
+  background: transparent !important;
+}
+
 .story-topbar {
   background: rgba(30, 18, 86, 0.82);
   color: #f1edff;
