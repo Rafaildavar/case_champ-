@@ -628,30 +628,35 @@ export default function App() {
 
   if (!vkReady) {
     return (
-      <View activePanel="main">
-        <Panel id="main" className="story-panel">
-          <PanelHeader className="story-topbar">ЗПИФ Навигатор</PanelHeader>
-          <Group header={<Header className="story-group-title">Подключение VK</Header>}>
-            <Div className="topic-content-card">
-              <h3 className="topic-content-title">Требуется запуск через VK</h3>
-              <p className="topic-content-text">
-                {vkError ?? "Подключаем VK Bridge и данные пользователя..."}
-              </p>
-              <div className="topic-actions">
-                <Button className="topic-primary-btn" onClick={() => void initVk()}>
-                  Повторить подключение
-                </Button>
-              </div>
-            </Div>
-          </Group>
-        </Panel>
-      </View>
+      <div className="app-force-dark">
+        <div className="app-force-dark-underlay" aria-hidden="true" />
+        <View activePanel="main">
+          <Panel id="main" className="story-panel">
+            <PanelHeader className="story-topbar">ЗПИФ Навигатор</PanelHeader>
+            <Group header={<Header className="story-group-title">Подключение VK</Header>}>
+              <Div className="topic-content-card">
+                <h3 className="topic-content-title">Требуется запуск через VK</h3>
+                <p className="topic-content-text">
+                  {vkError ?? "Подключаем VK Bridge и данные пользователя..."}
+                </p>
+                <div className="topic-actions">
+                  <Button className="topic-primary-btn" onClick={() => void initVk()}>
+                    Повторить подключение
+                  </Button>
+                </div>
+              </Div>
+            </Group>
+          </Panel>
+        </View>
+      </div>
     );
   }
 
   return (
-    <View activePanel={activePanel}>
-      <Panel id="main" className="story-panel">
+    <div className="app-force-dark">
+      <div className="app-force-dark-underlay" aria-hidden="true" />
+      <View activePanel={activePanel}>
+        <Panel id="main" className="story-panel">
         <PanelHeader className="story-topbar">{selectedMarathon ? selectedMarathon.title : "ЗПИФ Навигатор"}</PanelHeader>
         <Group>
           <Div className="vk-user-chip">VK: {vkUserName}</Div>
@@ -1272,7 +1277,8 @@ export default function App() {
             )}
           </Div>
         </Group>
-      </Panel>
-    </View>
+        </Panel>
+      </View>
+    </div>
   );
 }

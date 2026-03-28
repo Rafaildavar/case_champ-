@@ -15,8 +15,36 @@ body,
   background: #1a1527 !important;
   color: #f1edff;
 }
+
+.app-force-dark {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+}
+
+.app-force-dark-underlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top right, rgba(148, 120, 255, 0.2), rgba(148, 120, 255, 0) 42%),
+    linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
+}
+
+.app-force-dark .vkuiRoot,
+.app-force-dark .vkuiAppRoot,
+.app-force-dark .vkuiSplitLayout,
+.app-force-dark .vkuiSplitLayout__inner,
+.app-force-dark .vkuiSplitCol {
+  position: relative;
+  z-index: 1;
+}
+
 .story-panel {
   min-height: 100svh;
+  position: relative;
+  z-index: 1;
   background:
     radial-gradient(circle at top right, rgba(148, 120, 255, 0.2), rgba(148, 120, 255, 0) 42%),
     linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
