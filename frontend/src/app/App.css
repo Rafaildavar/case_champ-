@@ -10,6 +10,19 @@ body {
     linear-gradient(180deg, #3a278f 0%, #301f83 50%, #2a1a78 100%);
 }
 
+.story-panel,
+.story-panel .vkuiPanel,
+.story-panel .vkuiPanel__in,
+.story-panel .vkuiPanel__content,
+.story-panel .vkuiGroup,
+.story-panel .vkuiGroup__inner,
+.story-panel .vkuiGroup__separator,
+.story-panel .vkuiSplitLayout,
+.story-panel .vkuiSplitLayout__inner,
+.story-panel .vkuiSplitCol {
+  background-color: transparent !important;
+}
+
 /* Force dark canvas inside VKUI wrappers (some mobile hosts may keep light Group backgrounds). */
 .story-panel [class*="Panel__in"],
 .story-panel [class*="Panel__content"],
