@@ -1109,53 +1109,6 @@ body {
   margin-bottom: 4px;
 }
 
-.marathon-create-card {
-  margin-top: 8px;
-}
-
-.marathon-create-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.marathon-create-label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #c9c2e6;
-}
-
-.marathon-create-label-inline {
-  flex: 1;
-  min-width: 0;
-}
-
-.marathon-create-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.marathon-create-datetime {
-  width: 100%;
-  box-sizing: border-box;
-  border-radius: 12px;
-  border: 1px solid rgba(182, 171, 240, 0.28);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f1edff;
-  font-size: 16px;
-  padding: 10px 12px;
-  min-height: 44px;
-}
-
-.marathon-create-message {
-  margin-top: 10px;
-}
-
 .intensive-screen .topic-content-title.intensive-title {
   margin-top: 4px;
 }

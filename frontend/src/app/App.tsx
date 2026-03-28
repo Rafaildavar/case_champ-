@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import bridge from "@vkontakte/vk-bridge";
-import { Button, Div, Group, Header, Input, Panel, PanelHeader, Textarea, View } from "@vkontakte/vkui";
+import { Button, Div, Group, Header, Panel, PanelHeader, View } from "@vkontakte/vkui";
 import { apiClient, type ApiMarathon } from "../api/client";
 import {
   defaultIntensiveState,
@@ -363,18 +363,6 @@ export default function App() {
 
   const [remoteMarathons, setRemoteMarathons] = useState<Marathon[] | null>(null);
   const [marathonsLoadError, setMarathonsLoadError] = useState<string | null>(null);
-  const [createTitle, setCreateTitle] = useState("");
-  const [createDescription, setCreateDescription] = useState("");
-  const [createTopicsText, setCreateTopicsText] = useState("Тема 1\nТема 2\nТема 3");
-  const [createStartLocal, setCreateStartLocal] = useState(() => {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
-  });
-  const [createUnlockHours, setCreateUnlockHours] = useState("2");
-  const [createWindowHours, setCreateWindowHours] = useState("8");
-  const [createBusy, setCreateBusy] = useState(false);
-  const [createMessage, setCreateMessage] = useState<string | null>(null);
   const [intensiveByMarathon, setIntensiveByMarathon] = useState<Record<string, IntensiveMarathonState>>({});
 
   const loadMarathons = useCallback(async () => {
@@ -391,38 +379,6 @@ export default function App() {
   useEffect(() => {
     void loadMarathons();
   }, [loadMarathons]);
-
-  async function submitCreateMarathon() {
-    const titles = createTopicsText
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (!createTitle.trim() || titles.length === 0) {
-      setCreateMessage("Укажи название и хотя бы одну тему (каждая с новой строки).");
-      return;
-    }
-    setCreateBusy(true);
-    setCreateMessage(null);
-    try {
-      const startIso = new Date(createStartLocal).toISOString();
-      await apiClient.createMarathon({
-        title: createTitle.trim(),
-        description: createDescription.trim(),
-        start_at_iso: startIso,
-        topic_titles: titles,
-        unlock_interval_hours: Math.max(0.25, Number(createUnlockHours) || 2),
-        topic_window_hours: Math.max(0.25, Number(createWindowHours) || 8),
-        status: "open",
-        mode: "regular"
-      });
-      setCreateMessage("Марафон создан и появился в списке.");
-      await loadMarathons();
-    } catch {
-      setCreateMessage("Не удалось создать: проверь, что API запущен и VITE_API_URL верный.");
-    } finally {
-      setCreateBusy(false);
-    }
-  }
 
   const marathons = useMemo(() => {
     const map = new Map<string, Marathon>();
@@ -1018,61 +974,6 @@ export default function App() {
                   </div>
                 );
               })}
-              <div className="topic-card topic-card-neutral marathon-create-card">
-                <div className="topic-card-title">Создать марафон (демо)</div>
-                <p className="topic-card-subtitle">
-                  Черновик уходит на бэкенд: темы по одной строке, интервал открытия и окно прохождения — как в MVP «один день».
-                </p>
-                <div className="marathon-create-fields">
-                  <label className="marathon-create-label">
-                    Название
-                    <Input value={createTitle} onChange={(e) => setCreateTitle(e.target.value)} placeholder="Например: Интенсив выходного дня" />
-                  </label>
-                  <label className="marathon-create-label">
-                    Описание
-                    <Input value={createDescription} onChange={(e) => setCreateDescription(e.target.value)} placeholder="Коротко о потоке" />
-                  </label>
-                  <label className="marathon-create-label">
-                    Старт (локальное время)
-                    <input
-                      type="datetime-local"
-                      className="marathon-create-datetime"
-                      value={createStartLocal}
-                      onChange={(e) => setCreateStartLocal(e.target.value)}
-                    />
-                  </label>
-                  <label className="marathon-create-label">
-                    Темы (каждая с новой строки)
-                    <Textarea value={createTopicsText} onChange={(e) => setCreateTopicsText(e.target.value)} rows={4} />
-                  </label>
-                  <div className="marathon-create-row">
-                    <label className="marathon-create-label marathon-create-label-inline">
-                      Интервал открытия, ч
-                      <Input
-                        type="number"
-                        inputMode="decimal"
-                        value={createUnlockHours}
-                        onChange={(e) => setCreateUnlockHours(e.target.value)}
-                      />
-                    </label>
-                    <label className="marathon-create-label marathon-create-label-inline">
-                      Окно темы, ч
-                      <Input
-                        type="number"
-                        inputMode="decimal"
-                        value={createWindowHours}
-                        onChange={(e) => setCreateWindowHours(e.target.value)}
-                      />
-                    </label>
-                  </div>
-                </div>
-                {createMessage ? <p className="topic-content-text marathon-create-message">{createMessage}</p> : null}
-                <div className="topic-actions">
-                  <Button className="topic-primary-btn" disabled={createBusy} onClick={() => void submitCreateMarathon()}>
-                    {createBusy ? "Создаём…" : "Создать марафон"}
-                  </Button>
-                </div>
-              </div>
             </Div>
           </Group>
         )}
