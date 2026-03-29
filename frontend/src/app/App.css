@@ -381,6 +381,7 @@ body.light-theme .calc-chip,
 body.light-theme .calc-result,
 body.light-theme .intensive-rail-item,
 body.light-theme .intensive-video-placeholder,
+body.light-theme .intensive-mvp-video,
 body.light-theme .duo-image-placeholder,
 body.light-theme .duo-video-placeholder {
   background: rgba(255, 255, 255, 0.92);
@@ -1495,6 +1496,23 @@ body.light-theme .profile-progress-fill {
 .intensive-video-play {
   font-size: 36px;
   opacity: 0.85;
+}
+
+.intensive-mvp-video {
+  display: block;
+  width: 100%;
+  max-height: min(52vh, 340px);
+  margin: 12px 0;
+  border-radius: 18px;
+  border: 1px solid rgba(182, 171, 240, 0.28);
+  background: #0a0714;
+  object-fit: contain;
+}
+
+.intensive-mvp-video-sm {
+  max-height: min(36vh, 220px);
+  margin: 8px 0;
+  border-radius: 14px;
 }
 
 .intensive-reward-block {

@@ -3,6 +3,25 @@ import { Button, Div, Group, Header } from "@vkontakte/vkui";
 
 export const INTENSIVE_MVP_MARATHON_ID = "m-one-day";
 
+/** Статика из `frontend/public/marathon-mvp/` */
+const MARATHON_MVP_POSTER = "/marathon-mvp/2.jpeg";
+const MARATHON_MVP_VIDEO = "/marathon-mvp/2222.mp4";
+
+function IntensiveMvpVideo({ size }: { size: "lg" | "sm" }) {
+  return (
+    <video
+      className={`intensive-mvp-video ${size === "sm" ? "intensive-mvp-video-sm" : ""}`}
+      controls
+      playsInline
+      preload="metadata"
+      poster={MARATHON_MVP_POSTER}
+      src={MARATHON_MVP_VIDEO}
+    >
+      Ваш браузер не поддерживает воспроизведение видео.
+    </video>
+  );
+}
+
 const TEST_PASS_PERCENT = 65;
 const DEADLINE_MS = 24 * 60 * 60 * 1000;
 
@@ -418,13 +437,8 @@ export function IntensiveMarathonFlow({
       <Group header={<Header className="story-group-title">Приветствие</Header>}>
         <Div className="topic-content-card intensive-screen">
           <h2 className="topic-content-title">Приветственный ролик</h2>
-          <p className="topic-content-helper">
-            Здесь будет видео от организаторов. В MVP — заглушка плеера; после просмотра нажми «Начать».
-          </p>
-          <div className="intensive-video-placeholder" aria-hidden>
-            <span className="intensive-video-play">▶</span>
-            <span>Приветственный ролик (демо)</span>
-          </div>
+          <p className="topic-content-helper">Посмотри приветственный ролик, затем нажми «Начать».</p>
+          <IntensiveMvpVideo size="lg" />
           {statusFooter}
           <div className="topic-actions">
             <Button
@@ -649,10 +663,7 @@ export function IntensiveMarathonFlow({
               </div>
               {!steps.videoWatched ? (
                 <>
-                  <div className="intensive-video-placeholder intensive-video-placeholder-sm">
-                    <span className="intensive-video-play">▶</span>
-                    <span>Ролик этапа (демо)</span>
-                  </div>
+                  <IntensiveMvpVideo size="sm" />
                   <Button className="topic-primary-btn" onClick={() => patchTopic(activeTopic.id, { videoWatched: true })}>
                     Ролик просмотрен
                   </Button>
